@@ -19,6 +19,10 @@ class ClientController extends Controller
         $query = $this->getAuthorizedClientsQuery($user);
 
         // Apply filters
+        if ($request->has('source')) {
+            $query->where('source', $request->source);
+        }
+
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -68,6 +72,7 @@ class ClientController extends Controller
             'mobile' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
+            'source' => ['nullable', 'string', 'max:255'],
             'value' => ['nullable', 'numeric', 'min:0'],
             'product' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],

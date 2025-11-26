@@ -29,6 +29,10 @@ class LeadController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->has('source')) {
+            $query->where('source', $request->source);
+        }
+
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -61,6 +65,7 @@ class LeadController extends Controller
             'mobile' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
+            'source' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', Rule::in(['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won', 'lost'])],
             'value' => ['nullable', 'numeric', 'min:0'],
             'product' => ['nullable', 'string', 'max:255'],
@@ -109,6 +114,7 @@ class LeadController extends Controller
             'mobile' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
+            'source' => ['nullable', 'string', 'max:255'],
             'status' => ['sometimes', Rule::in(['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won', 'lost'])],
             'value' => ['nullable', 'numeric', 'min:0'],
             'product' => ['nullable', 'string', 'max:255'],

@@ -24,6 +24,7 @@ class LeadResource extends JsonResource
             'mobile' => $this->mobile,
             'city' => $this->city,
             'country' => $this->country,
+            'source' => $this->source,
             'status' => $this->status,
             'value' => $this->value ? (float) $this->value : null,
             'product' => $this->product,
@@ -45,4 +46,3 @@ class LeadResource extends JsonResource
         ];
     }
 }
-

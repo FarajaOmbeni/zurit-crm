@@ -21,6 +21,7 @@ class Lead extends Model
         'mobile',
         'city',
         'country',
+        'source',
         'added_by',
         'status',
         'value',
