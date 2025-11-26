@@ -38,6 +38,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tasks', function () {
         return Inertia::render('Tasks/Index');
     })->name('tasks.index');
+
+    Route::get('/users', function () {
+        return Inertia::render('Users/Index');
+    })->name('users.index');
 });
 
 Route::middleware('auth')->group(function () {
