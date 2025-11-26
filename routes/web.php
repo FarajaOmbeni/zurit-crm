@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::post('/users/{user}/resend-otp', [UserController::class, 'resendOtp'])->name('users.resend-otp');
 });
 
 Route::middleware('auth')->group(function () {

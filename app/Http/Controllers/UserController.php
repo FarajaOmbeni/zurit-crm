@@ -26,6 +26,9 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($user) {
+                $otpExpired = $user->otp && $user->otp_expires_at && $user->otp_expires_at->isPast();
+                $hasOtp = !empty($user->otp) && $user->must_reset_password;
+
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -34,6 +37,9 @@ class UserController extends Controller
                     'manager_name' => $user->manager ? $user->manager->name : null,
                     'is_active' => $user->is_active,
                     'created_at' => $user->created_at->format('Y-m-d H:i:s'),
+                    'must_reset_password' => $user->must_reset_password,
+                    'otp_expired' => $otpExpired,
+                    'has_otp' => $hasOtp,
                 ];
             });
 
@@ -54,7 +60,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'role' => ['required', 'in:admin,manager,team_member'],
             'manager_id' => ['nullable', 'exists:users,id'],
             'is_active' => ['boolean'],
@@ -62,7 +68,7 @@ class UserController extends Controller
 
         // Generate 6-digit OTP
         $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        
+
         // Create user with temporary password (OTP)
         $user = User::create([
             'name' => $validated['name'],
@@ -80,5 +86,36 @@ class UserController extends Controller
         Mail::to($user->email)->send(new UserOtpMail($otp, $user->name));
 
         return redirect()->route('users.index')->with('success', 'User created successfully. OTP has been sent to their email.');
+    }
+
+    /**
+     * Resend OTP to a user.
+     */
+    public function resendOtp(User $user)
+    {
+        // Only admins can resend OTP
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Only resend if user must reset password
+        if (!$user->must_reset_password) {
+            return redirect()->route('users.index')->with('error', 'User has already set their password.');
+        }
+
+        // Generate new 6-digit OTP
+        $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Update user with new OTP
+        $user->update([
+            'otp' => $otp,
+            'otp_expires_at' => now()->addHours(24), // OTP expires in 24 hours
+            'password' => Hash::make($otp), // Update password with new OTP
+        ]);
+
+        // Send OTP email
+        Mail::to($user->email)->send(new UserOtpMail($otp, $user->name));
+
+        return redirect()->route('users.index')->with('success', 'OTP has been resent to ' . $user->email);
     }
 }

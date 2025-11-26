@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
@@ -25,6 +25,9 @@ const form = useForm({
 });
 
 const submit = () => {
+    // Convert email to lowercase before submitting
+    form.email = form.email.toLowerCase().trim();
+    
     form.post(route('users.store'), {
         preserveScroll: true,
         onSuccess: () => {
@@ -55,6 +58,14 @@ const getRoleBadgeClass = (role) => {
 
 const formatRole = (role) => {
     return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
+const resendOtp = (userId) => {
+    if (confirm('Are you sure you want to resend the OTP to this user?')) {
+        router.post(route('users.resend-otp', userId), {}, {
+            preserveScroll: true,
+        });
+    }
 };
 </script>
 
@@ -109,6 +120,9 @@ const formatRole = (role) => {
                                     <th class="px-6 py-3 text-left font-heading text-xs font-medium uppercase tracking-wider text-light-black">
                                         Created At
                                     </th>
+                                    <th class="px-6 py-3 text-left font-heading text-xs font-medium uppercase tracking-wider text-light-black">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 bg-white">
@@ -146,6 +160,21 @@ const formatRole = (role) => {
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4 font-body text-sm text-zurit-gray">
                                         {{ user.created_at }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 font-body text-sm">
+                                        <button
+                                            v-if="user.has_otp && user.otp_expired"
+                                            @click="resendOtp(user.id)"
+                                            class="inline-flex items-center rounded-lg bg-prosper px-3 py-1.5 text-xs font-medium text-white hover:bg-prosper/90 focus:outline-none focus:ring-2 focus:ring-prosper focus:ring-offset-2 transition-colors"
+                                        >
+                                            Resend OTP
+                                        </button>
+                                        <span v-else-if="user.has_otp && !user.otp_expired" class="text-zurit-gray text-xs">
+                                            OTP Active
+                                        </span>
+                                        <span v-else class="text-zurit-gray text-xs">
+                                            -
+                                        </span>
                                     </td>
                                 </tr>
                             </tbody>
