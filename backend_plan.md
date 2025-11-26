@@ -390,7 +390,7 @@ routes/
 5. Create EnsureRole middleware for role-based route protection
 6. Set up API routes file (routes/api.php) with all endpoint definitions and authentication middleware
 7. Create all API controllers (DashboardController, LeadController, ClientController, TaskController, ActivityController, ReportController, ProductController) with CRUD operations
-8. Create FollowUpService for automated follow-up scheduling logic (2 days initial, 7 days recurring)
+8. Create FollowUpService for automated follow-up scheduling logic (2 days initial, 7 days recurring until the deal is closed)
 9. Create console commands for scheduled jobs (ProcessFollowUpSchedules, SendFollowUpEmails, GenerateDailyReports, GenerateEODReports)
 10. Create seeders for pipeline stages and initial admin user
 11. Create email templates for follow-up emails and task reminders
