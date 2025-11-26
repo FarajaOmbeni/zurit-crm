@@ -383,13 +383,13 @@ routes/
 
 ## tasks
 
-1. Create all database migrations for pipeline_stages, clients, leads, contacts, activities, tasks, follow_up_schedules, products, product_history, reports, and settings tables
-2. Create all Eloquent models (Client, Lead, PipelineStage, Contact, Activity, Task, FollowUpSchedule, Product, ProductHistory, Report, Setting) with relationships and scopes
+1. Create all database migrations for pipeline_stages, clients, leads, contacts, activities, tasks, follow_up_schedules, products, reports, and tables
+2. Create all Eloquent models (Client, Lead, PipelineStage, Activity, Task, FollowUpSchedule, Product, Report) with relationships and scopes
 3. Extend User model with role field, manager relationship, and role-based scopes
 4. Create authorization policies (LeadPolicy, ClientPolicy, TaskPolicy, UserPolicy) for role-based access control
 5. Create EnsureRole middleware for role-based route protection
 6. Set up API routes file (routes/api.php) with all endpoint definitions and authentication middleware
-7. Create all API controllers (DashboardController, LeadController, ClientController, ContactController, TaskController, ActivityController, ReportController, ProductController, SettingController, UserController) with CRUD operations
+7. Create all API controllers (DashboardController, LeadController, ClientController, TaskController, ActivityController, ReportController, ProductController) with CRUD operations
 8. Create FollowUpService for automated follow-up scheduling logic (2 days initial, 7 days recurring)
 9. Create console commands for scheduled jobs (ProcessFollowUpSchedules, SendFollowUpEmails, GenerateDailyReports, GenerateEODReports)
 10. Create seeders for pipeline stages and initial admin user
