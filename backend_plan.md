@@ -383,7 +383,7 @@ routes/
 
 ## tasks
 
-1. Create all database migrations for users (extend), pipeline_stages, clients, leads, contacts, activities, tasks, follow_up_schedules, products, product_history, reports, and settings tables
+1. Create all database migrations for pipeline_stages, clients, leads, contacts, activities, tasks, follow_up_schedules, products, product_history, reports, and settings tables
 2. Create all Eloquent models (Client, Lead, PipelineStage, Contact, Activity, Task, FollowUpSchedule, Product, ProductHistory, Report, Setting) with relationships and scopes
 3. Extend User model with role field, manager relationship, and role-based scopes
 4. Create authorization policies (LeadPolicy, ClientPolicy, TaskPolicy, UserPolicy) for role-based access control
