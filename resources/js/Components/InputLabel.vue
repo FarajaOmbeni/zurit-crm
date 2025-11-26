@@ -3,11 +3,14 @@ defineProps({
     value: {
         type: String,
     },
+    for: {
+        type: String,
+    },
 });
 </script>
 
 <template>
-    <label class="block text-sm font-medium text-gray-700">
+    <label :for="for" class="block font-body text-sm font-medium text-light-black">
         <span v-if="value">{{ value }}</span>
         <span v-else><slot /></span>
     </label>
