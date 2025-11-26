@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -39,9 +40,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Tasks/Index');
     })->name('tasks.index');
 
-    Route::get('/users', function () {
-        return Inertia::render('Users/Index');
-    })->name('users.index');
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
 });
 
 Route::middleware('auth')->group(function () {

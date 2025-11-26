@@ -27,6 +27,9 @@ class User extends Authenticatable
         'role',
         'manager_id',
         'is_active',
+        'otp',
+        'otp_expires_at',
+        'must_reset_password',
     ];
 
     /**
@@ -50,6 +53,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'otp_expires_at' => 'datetime',
+            'must_reset_password' => 'boolean',
         ];
     }
 

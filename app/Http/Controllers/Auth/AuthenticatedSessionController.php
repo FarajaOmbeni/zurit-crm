@@ -33,6 +33,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Check if user must reset password (first-time login with OTP)
+        if (Auth::user()->must_reset_password) {
+            return redirect()->route('password.set');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
