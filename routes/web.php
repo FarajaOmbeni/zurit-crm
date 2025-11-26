@@ -14,9 +14,31 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
+
+    Route::get('/pipeline', function () {
+        return Inertia::render('Pipeline/Index');
+    })->name('pipeline');
+
+    Route::get('/leads', function () {
+        return Inertia::render('Leads/Index');
+    })->name('leads.index');
+
+    Route::get('/clients', function () {
+        return Inertia::render('Clients/Index');
+    })->name('clients.index');
+
+    Route::get('/reports', function () {
+        return Inertia::render('Reports/Index');
+    })->name('reports.index');
+
+    Route::get('/tasks', function () {
+        return Inertia::render('Tasks/Index');
+    })->name('tasks.index');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -24,4 +46,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

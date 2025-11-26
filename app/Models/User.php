@@ -4,6 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -21,6 +24,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'manager_id',
+        'is_active',
     ];
 
     /**
@@ -43,6 +49,111 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the manager that this user belongs to (for team members).
+     */
+    public function manager(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    /**
+     * Get the team members for this user (for managers).
+     */
+    public function teamMembers(): HasMany
+    {
+        return $this->hasMany(User::class, 'manager_id');
+    }
+
+    /**
+     * Get the leads added by this user.
+     */
+    public function leads(): HasMany
+    {
+        return $this->hasMany(\App\Models\Lead::class, 'added_by');
+    }
+
+    /**
+     * Get the clients (leads where is_client = true) added by this user.
+     */
+    public function clients(): HasMany
+    {
+        return $this->hasMany(\App\Models\Lead::class, 'added_by')->where('is_client', true);
+    }
+
+    /**
+     * Get the tasks created by this user.
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(\App\Models\Task::class, 'created_by');
+    }
+
+    /**
+     * Get the activities performed by this user.
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(\App\Models\Activity::class, 'user_id');
+    }
+
+    /**
+     * Scope a query to only include admin users.
+     */
+    public function scopeAdmins(Builder $query): Builder
+    {
+        return $query->where('role', 'admin');
+    }
+
+    /**
+     * Scope a query to only include manager users.
+     */
+    public function scopeManagers(Builder $query): Builder
+    {
+        return $query->where('role', 'manager');
+    }
+
+    /**
+     * Scope a query to only include team member users.
+     */
+    public function scopeTeamMembers(Builder $query): Builder
+    {
+        return $query->where('role', 'team_member');
+    }
+
+    /**
+     * Scope a query to only include active users.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if the user is a manager.
+     */
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+
+    /**
+     * Check if the user is a team member.
+     */
+    public function isTeamMember(): bool
+    {
+        return $this->role === 'team_member';
     }
 }
