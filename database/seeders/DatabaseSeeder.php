@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             PipelineStageSeeder::class,
             ProductSeeder::class,
             LeadSeeder::class,
+            TaskSeeder::class,
         ]);
     }
 }

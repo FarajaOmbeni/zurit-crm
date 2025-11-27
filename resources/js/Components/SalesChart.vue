@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import axios from 'axios';
 
 const salesData = ref([]);
 const loading = ref(false);
@@ -21,7 +20,7 @@ const fetchSalesData = async () => {
         }
 
         // Fetch won leads
-        const response = await axios.get('/api/leads', {
+        const response = await window.axios.get('/api/leads', {
             params: {
                 status: 'won',
                 per_page: 1000, // Get enough to cover last 5 days
@@ -50,7 +49,6 @@ const fetchSalesData = async () => {
             };
         });
 
-        console.log('Sales data for last 5 days:', salesData.value);
     } catch (error) {
         console.error('Error fetching sales data:', error);
         // If API fails, show empty data instead of random data
@@ -96,7 +94,7 @@ onMounted(() => {
                 <!-- Y-axis label -->
                 <div
                     class="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-gray-600 font-normal whitespace-nowrap">
-                    No. of Salesimage.png
+                    No. of Sales
                 </div>
 
                 <!-- Y-axis labels (0, 4, 8, 12, 16, 20) -->

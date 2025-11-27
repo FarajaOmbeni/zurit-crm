@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 
 const tasks = ref([]);
 const loading = ref(false);
@@ -31,12 +30,12 @@ const toggleTask = async (task) => {
     try {
         if (task.status === 'completed') {
             // Uncomplete task
-            await axios.put(`/api/tasks/${task.id}`, {
+            await window.axios.put(`/api/tasks/${task.id}`, {
                 status: 'pending',
             });
         } else {
             // Complete task
-            await axios.patch(`/api/tasks/${task.id}/complete`);
+            await window.axios.patch(`/api/tasks/${task.id}/complete`);
         }
         // Refresh tasks
         fetchTasks();
@@ -48,7 +47,7 @@ const toggleTask = async (task) => {
 const fetchTasks = async () => {
     loading.value = true;
     try {
-        const response = await axios.get('/api/tasks?per_page=6&order_by=due_date&order=asc');
+        const response = await window.axios.get('/api/tasks?per_page=6&order_by=due_date&order=asc');
         tasks.value = response.data.data || [];
     } catch (error) {
         console.error('Error fetching tasks:', error);

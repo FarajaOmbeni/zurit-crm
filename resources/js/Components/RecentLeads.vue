@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import axios from 'axios';
 
 const recentLeads = ref([]);
 const loading = ref(false);
@@ -44,7 +43,7 @@ const formatTimeAgo = (date) => {
 const fetchRecentLeads = async () => {
     loading.value = true;
     try {
-        const response = await axios.get('/api/leads?per_page=4&order_by=created_at&order=desc');
+        const response = await window.axios.get('/api/leads?per_page=4&order_by=created_at&order=desc');
         recentLeads.value = response.data.data || [];
     } catch (error) {
         console.error('Error fetching recent leads:', error);
