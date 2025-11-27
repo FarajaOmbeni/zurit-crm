@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 
 const salesData = ref([]);
 const loading = ref(false);
+const hoveredPoint = ref(null);
 
 const fetchSalesData = async () => {
     loading.value = true;
@@ -23,6 +24,7 @@ const fetchSalesData = async () => {
         const response = await window.axios.get('/api/leads', {
             params: {
                 status: 'won',
+                include_clients: true, // Include clients in the response
                 per_page: 1000, // Get enough to cover last 5 days
             }
         });
@@ -39,7 +41,9 @@ const fetchSalesData = async () => {
             const count = wonLeads.filter(lead => {
                 if (!lead.won_at) return false;
                 const wonDate = new Date(lead.won_at);
-                const wonDateString = wonDate.toISOString().split('T')[0];
+                // Create date string in local timezone to match
+                const wonDateString = new Date(wonDate.getFullYear(), wonDate.getMonth(), wonDate.getDate())
+                    .toISOString().split('T')[0];
                 return wonDateString === dateString;
             }).length;
 
@@ -70,8 +74,16 @@ const fetchSalesData = async () => {
 };
 
 const getYPosition = (sales) => {
-    // Fixed scale: 0-20 on Y-axis, chart height is 160
-    return 160 - (sales / 20) * 160;
+    // Fixed scale: 0-10 on Y-axis, chart height is 160
+    return 160 - (sales / 10) * 160;
+};
+
+const showTooltip = (index) => {
+    hoveredPoint.value = index;
+};
+
+const hideTooltip = () => {
+    hoveredPoint.value = null;
 };
 
 onMounted(() => {
@@ -97,21 +109,22 @@ onMounted(() => {
                     No. of Sales
                 </div>
 
-                <!-- Y-axis labels (0, 4, 8, 12, 16, 20) -->
+                <!-- Y-axis labels (0, 1, 2, 4, 6, 8, 10) -->
                 <div class="absolute left-8 top-0 bottom-10 flex flex-col justify-between text-xs text-gray-600">
-                    <span>20</span>
-                    <span>16</span>
-                    <span>12</span>
+                    <span>10</span>
                     <span>8</span>
+                    <span>6</span>
                     <span>4</span>
+                    <span>2</span>
+                    <span>1</span>
                     <span>0</span>
                 </div>
 
                 <!-- Chart Area -->
-                <div class="ml-14 h-full pb-10">
+                <div class="ml-14 h-full pb-10 relative">
                     <svg class="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="none">
                         <!-- Grid lines (horizontal) -->
-                        <line v-for="i in 6" :key="i" :x1="0" :y1="(i - 1) * 32" :x2="400" :y2="(i - 1) * 32"
+                        <line v-for="i in 7" :key="i" :x1="0" :y1="(i - 1) * 26.67" :x2="400" :y2="(i - 1) * 26.67"
                             stroke="#f3f4f6" stroke-width="1" />
 
                         <!-- Line graph -->
@@ -125,8 +138,22 @@ onMounted(() => {
                         <!-- Data points -->
                         <circle v-for="(item, index) in salesData" :key="index"
                             :cx="(index / (salesData.length - 1)) * 400" :cy="getYPosition(item.sales)" r="4"
-                            fill="#8B5CF6" />
+                            fill="#8B5CF6" class="cursor-pointer hover:r-6 transition-all"
+                            @mouseenter="showTooltip(index)" @mouseleave="hideTooltip" />
                     </svg>
+
+                    <!-- Tooltips -->
+                    <div v-for="(item, index) in salesData" :key="`tooltip-${index}`" v-show="hoveredPoint === index"
+                        class="absolute bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg pointer-events-none z-10"
+                        :style="{
+                            left: `${((index / (salesData.length - 1)) * 100)}%`,
+                            top: `${((getYPosition(item.sales) / 160) * 100) + 5}%`,
+                            transform: 'translate(-50%, 0)'
+                        }">
+                        {{ item.sales }} {{ item.sales === 1 ? 'sale' : 'sales' }}
+                        <div class="absolute left-1/2 -top-1 w-2 h-2 bg-gray-900 transform rotate-45 -translate-x-1/2">
+                        </div>
+                    </div>
                 </div>
 
                 <!-- X-axis labels (days) -->
@@ -143,15 +170,7 @@ onMounted(() => {
             </div>
 
             <!-- Legend and Button Row -->
-            <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
-                <!-- Legend -->
-                <div class="flex items-center gap-2">
-                    <svg width="20" height="4" class="flex-shrink-0">
-                        <line x1="0" y1="2" x2="20" y2="2" stroke="#8B5CF6" stroke-width="2" />
-                    </svg>
-                    <span class="text-sm text-gray-600">5</span>
-                </div>
-
+            <div class="mt-6 pt-4 border-t border-gray-100 flex justify-end">
                 <!-- View Report Button -->
                 <button
                     class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition shadow-sm">
