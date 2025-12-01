@@ -7,6 +7,7 @@ import Tasks from '@/Components/Tasks.vue';
 import ProductsByPurchase from '@/Components/ProductsByPurchase.vue';
 import LeadsPerSource from '@/Components/LeadsPerSource.vue';
 import CalendarWidget from '@/Components/CalendarWidget.vue';
+import RecentActivities from '@/Components/RecentActivities.vue';
 import { Head } from '@inertiajs/vue3';
 
 defineProps({
@@ -70,6 +71,11 @@ defineProps({
                     <div class="lg:col-span-1">
                         <CalendarWidget />
                     </div>
+                </div>
+
+                <!-- Recent Activities Section -->
+                <div class="mt-8">
+                    <RecentActivities />
                 </div>
             </div>
         </div>
