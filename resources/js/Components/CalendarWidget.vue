@@ -154,7 +154,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="bg-white shadow rounded-lg p-6">
+    <div class="bg-white shadow rounded-lg p-6 h-[500px] flex flex-col">
         <!-- Calendar Header -->
         <div class="flex items-center justify-between mb-4">
             <button @click="previousMonth" class="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -185,7 +185,7 @@ onMounted(() => {
         </div>
 
         <!-- Calendar Days -->
-        <div class="grid grid-cols-7 gap-1">
+        <div class="grid grid-cols-7 gap-1 flex-1">
             <div v-for="(day, index) in daysInMonth" :key="index"
                 class="aspect-square flex items-center justify-center relative">
                 <button v-if="day" @click="handleDayClick(day)" :class="[

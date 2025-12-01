@@ -71,21 +71,22 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="bg-white shadow rounded-lg p-6">
+    <div class="bg-white shadow rounded-lg p-6 h-[500px] flex flex-col">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Products by Purchase</h3>
 
-        <div v-if="loading" class="space-y-3">
+        <div v-if="loading" class="space-y-3 flex-1 flex flex-col justify-center">
             <div v-for="i in 5" :key="i" class="animate-pulse flex items-center gap-3">
                 <div class="h-4 bg-gray-200 rounded w-32"></div>
                 <div class="flex-1 h-6 bg-gray-100 rounded"></div>
             </div>
         </div>
 
-        <div v-else-if="products.length === 0" class="text-center py-8 text-gray-500">
+        <div v-else-if="products.length === 0"
+            class="text-center py-8 text-gray-500 flex-1 flex items-center justify-center">
             No product data available
         </div>
 
-        <div v-else class="space-y-3">
+        <div v-else class="space-y-3 flex-1 flex flex-col">
             <div v-for="(product, index) in products" :key="product.name" class="flex items-center gap-3">
                 <!-- Product Name -->
                 <div class="w-40 text-sm text-gray-700 truncate" :title="product.name">

@@ -92,17 +92,17 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 h-[500px] flex flex-col">
         <!-- Title -->
         <h2 class="text-lg font-semibold text-gray-900 mb-6">Sales (Last 5 Days)</h2>
 
-        <div v-if="loading" class="text-center py-8 text-gray-500">
+        <div v-if="loading" class="text-center py-8 text-gray-500 flex-1 flex items-center justify-center">
             Loading...
         </div>
 
-        <div v-else>
+        <div v-else class="flex-1 flex flex-col">
             <!-- Chart Container -->
-            <div class="relative h-56">
+            <div class="relative flex-1 min-h-0">
                 <!-- Y-axis label -->
                 <div
                     class="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-gray-600 font-normal whitespace-nowrap">

@@ -61,22 +61,49 @@ onMounted(() => {
 });
 </script>
 
+<style scoped>
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #9333ea;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #7c3aed;
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #9333ea #f3f4f6;
+}
+</style>
+
 <template>
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow-sm p-6 h-[500px] flex flex-col">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-gray-900">Tasks</h2>
             <a href="/tasks" class="text-sm text-gray-600 hover:text-gray-900">View All</a>
         </div>
         
-        <div v-if="loading" class="text-center py-8 text-gray-500">
+        <div v-if="loading" class="text-center py-8 text-gray-500 flex-1 flex items-center justify-center">
             Loading...
         </div>
         
-        <div v-else-if="tasks.length === 0" class="text-center py-8 text-gray-500">
+        <div v-else-if="tasks.length === 0" class="text-center py-8 text-gray-500 flex-1 flex items-center justify-center">
             No tasks found
         </div>
         
-        <div v-else class="space-y-3">
+        <div v-else class="space-y-3 flex-1 overflow-auto custom-scrollbar">
             <div 
                 v-for="task in tasks" 
                 :key="task.id"

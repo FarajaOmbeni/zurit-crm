@@ -116,10 +116,10 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="bg-white shadow rounded-lg p-6">
+    <div class="bg-white shadow rounded-lg p-6 h-[500px] flex flex-col">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Leads per Source (Last 30 days)</h3>
 
-        <div v-if="loading" class="flex flex-col items-center">
+        <div v-if="loading" class="flex flex-col items-center flex-1 justify-center">
             <div class="animate-pulse">
                 <div class="w-40 h-40 bg-gray-200 rounded-full"></div>
             </div>
@@ -128,11 +128,12 @@ onMounted(() => {
             </div>
         </div>
 
-        <div v-else-if="sourcesData.length === 0" class="text-center py-8 text-gray-500">
+        <div v-else-if="sourcesData.length === 0"
+            class="text-center py-8 text-gray-500 flex-1 flex items-center justify-center">
             No leads data available
         </div>
 
-        <div v-else class="flex flex-col items-center">
+        <div v-else class="flex flex-col items-center flex-1 justify-center">
             <!-- Donut Chart -->
             <div class="relative w-40 h-40">
                 <svg viewBox="0 0 160 160" class="w-full h-full transform -rotate-90">
