@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             LeadSeeder::class,
             TaskSeeder::class,
+            ReportSeeder::class,
         ]);
     }
 }

@@ -85,6 +85,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Reports APIs
     Route::prefix('reports')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('api.reports.index');
+        Route::get('/latest', [ReportController::class, 'latest'])->name('api.reports.latest');
+        Route::get('/by-date', [ReportController::class, 'getByDate'])->name('api.reports.by-date');
+        Route::get('/{id}/download', [ReportController::class, 'downloadPdf'])->name('api.reports.download');
+        Route::post('/{id}/send-email', [ReportController::class, 'sendEmail'])->name('api.reports.send-email');
         Route::post('/eod', [ReportController::class, 'generateEod'])->name('api.reports.eod');
         Route::post('/custom', [ReportController::class, 'generateCustom'])->name('api.reports.custom');
     });
