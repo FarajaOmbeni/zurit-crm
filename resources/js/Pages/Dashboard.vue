@@ -4,6 +4,9 @@ import Snapshot from '@/Components/Snapshot.vue';
 import RecentLeads from '@/Components/RecentLeads.vue';
 import SalesChart from '@/Components/SalesChart.vue';
 import Tasks from '@/Components/Tasks.vue';
+import ProductsByPurchase from '@/Components/ProductsByPurchase.vue';
+import LeadsPerSource from '@/Components/LeadsPerSource.vue';
+import CalendarWidget from '@/Components/CalendarWidget.vue';
 import { Head } from '@inertiajs/vue3';
 
 defineProps({
@@ -48,6 +51,24 @@ defineProps({
                     <!-- Tasks -->
                     <div class="lg:col-span-1">
                         <Tasks />
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Products by Purchase -->
+                    <div class="lg:col-span-1">
+                        <ProductsByPurchase />
+                    </div>
+                    
+                    <!-- Leads per Source -->
+                    <div class="lg:col-span-1">
+                        <LeadsPerSource />
+                    </div>
+                    
+                    <!-- Calendar Widget -->
+                    <div class="lg:col-span-1">
+                        <CalendarWidget />
                     </div>
                 </div>
             </div>
