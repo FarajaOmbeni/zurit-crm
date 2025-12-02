@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 
@@ -8,6 +8,15 @@ const allLeads = ref([]);
 const loading = ref(false);
 const showModal = ref(false);
 const modalLoading = ref(false);
+
+// Lock body scroll when modal is open
+watch(showModal, (isOpen) => {
+    if (isOpen) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+});
 
 const statusColors = {
     'new_lead': 'bg-purple-100 text-purple-800',

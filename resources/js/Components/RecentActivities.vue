@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';
 
 const activities = ref([]);
@@ -7,6 +7,15 @@ const allActivities = ref([]);
 const loading = ref(true);
 const showModal = ref(false);
 const modalLoading = ref(false);
+
+// Lock body scroll when modal is open
+watch(showModal, (isOpen) => {
+    if (isOpen) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+});
 
 const fetchRecentActivities = async () => {
     try {
@@ -309,7 +318,7 @@ onMounted(() => {
                 </div>
 
                 <!-- Modal Body -->
-                <div class="p-6 overflow-y-auto max-h-[calc(85vh-140px)]">
+                <div class="p-6 overflow-y-auto max-h-[calc(85vh-140px)] modal-scrollbar">
                     <div v-if="modalLoading" class="space-y-3">
                         <div v-for="i in 10" :key="i" class="animate-pulse flex items-center gap-4 py-3">
                             <div class="w-10 h-10 bg-gray-200 rounded-lg"></div>
@@ -400,3 +409,29 @@ onMounted(() => {
     </div>
 </template>
 
+<style scoped>
+/* Webkit browsers scrollbar */
+.modal-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+    background: #9333ea;
+    border-radius: 3px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #7c3aed;
+}
+
+/* Firefox scrollbar */
+.modal-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #9333ea #f3f4f6;
+}
+</style>

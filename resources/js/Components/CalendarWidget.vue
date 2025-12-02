@@ -10,6 +10,15 @@ const showModal = ref(false);
 const selectedDayTasks = ref([]);
 const selectedDayNumber = ref(null);
 
+// Lock body scroll when modal is open
+watch(showModal, (isOpen) => {
+    if (isOpen) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+});
+
 const currentMonth = computed(() => {
     return currentDate.value.toLocaleString('default', { month: 'long' });
 });

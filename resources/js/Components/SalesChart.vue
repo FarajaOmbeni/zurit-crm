@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';
 
 const salesData = ref([]);
@@ -17,6 +17,15 @@ const sending = ref(false);
 const emailSuccess = ref(false);
 const userHighlights = ref('');
 const userChallenges = ref('');
+
+// Lock body scroll when modal is open
+watch(showModal, (isOpen) => {
+    if (isOpen) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+});
 
 const fetchSalesData = async () => {
     loading.value = true;
