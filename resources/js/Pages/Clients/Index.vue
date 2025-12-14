@@ -8,6 +8,9 @@ import { ref, onMounted } from 'vue';
 
 const clients = ref([]);
 const total = ref(0);
+const currentPage = ref(1);
+const lastPage = ref(1);
+const perPage = ref(15); // Default per page, will be updated from API response
 const searchTerm = ref('');
 const filterType = ref(null);
 const loading = ref(false);
@@ -17,7 +20,7 @@ const selectedClient = ref(null);
 const startInEditMode = ref(false);
 let loadingTimeout = null;
 
-const fetchClients = async (search = '') => {
+const fetchClients = async (search = '', page = 1) => {
     loading.value = true;
     showEmptyState.value = false;
 
@@ -35,7 +38,8 @@ const fetchClients = async (search = '') => {
 
     try {
         const params = {
-            per_page: 50,
+            per_page: perPage.value,
+            page: page,
         };
 
         // Only add search parameter if it's not empty
@@ -46,6 +50,9 @@ const fetchClients = async (search = '') => {
         const response = await window.axios.get('/api/clients', { params });
         clients.value = response.data.data || [];
         total.value = response.data.total || 0;
+        currentPage.value = response.data.current_page || 1;
+        lastPage.value = response.data.last_page || 1;
+        perPage.value = response.data.per_page || 15;
 
         // If we got data, clear the timeout and hide empty state
         if (loadingTimeout) {
@@ -56,6 +63,8 @@ const fetchClients = async (search = '') => {
         console.error('Error fetching clients:', error);
         clients.value = [];
         total.value = 0;
+        currentPage.value = 1;
+        lastPage.value = 1;
 
         // On error, show empty state immediately
         if (loadingTimeout) {
@@ -83,14 +92,21 @@ const handleAddLead = () => {
 
 const handleSearch = (term) => {
     searchTerm.value = term;
-    // Fetch clients with search term (empty string will fetch all)
-    fetchClients(term);
+    // Reset to first page when searching
+    currentPage.value = 1;
+    fetchClients(term, 1);
 };
 
 const handleFilter = (type) => {
     filterType.value = type;
-    // Implement filter logic if needed
-    fetchClients(searchTerm.value);
+    // Reset to first page when filtering
+    currentPage.value = 1;
+    fetchClients(searchTerm.value, 1);
+};
+
+const handlePageChange = (page) => {
+    currentPage.value = page;
+    fetchClients(searchTerm.value, page);
 };
 
 const handleView = async (client) => {
@@ -155,8 +171,9 @@ const closeModal = () => {
                     :avg-progress="75" :active-clients="8" :paused-clients="3" :completed="5" @export="handleExport"
                     @add-lead="handleAddLead" @search="handleSearch" @filter="handleFilter" />
 
-                <ClientList :clients="clients" :total="total" :loading="loading" :show-empty-state="showEmptyState"
-                    @view="handleView" @edit="handleEdit" />
+                <ClientList :clients="clients" :total="total" :current-page="currentPage" :last-page="lastPage"
+                    :per-page="perPage" :loading="loading" :show-empty-state="showEmptyState" @view="handleView"
+                    @edit="handleEdit" @page-change="handlePageChange" />
 
                 <!-- Client View Modal -->
                 <ClientViewModal :show="showModal" :client="selectedClient" :initial-edit-mode="startInEditMode"

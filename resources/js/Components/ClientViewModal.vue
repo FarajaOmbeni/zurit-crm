@@ -115,9 +115,26 @@ const formatStatus = (status) => {
 };
 
 const getServices = () => {
-    if (!props.client?.product) return [];
-    // Split product by comma and create service objects
-    const services = props.client.product.split(',').map(s => s.trim()).filter(s => s);
+    const services = [];
+
+    // Use products relationship if available
+    if (props.client?.products && Array.isArray(props.client.products) && props.client.products.length > 0) {
+        // Extract all product names from the relationship
+        props.client.products.forEach((product, index) => {
+            const productName = product.pivot?.product_name || product.name || '';
+            if (productName) {
+                services.push(productName);
+            }
+        });
+    }
+
+    // Fallback to old product string field for backward compatibility
+    if (services.length === 0 && props.client?.product) {
+        const productNames = props.client.product.split(',').map(s => s.trim()).filter(s => s);
+        services.push(...productNames);
+    }
+
+    // Map services to service objects with icons and colors
     return services.map((service, index) => {
         const serviceConfigs = [
             { name: 'Prosperity Talks', icon: 'microphone', color: 'bg-blue-50 border-blue-200', iconColor: 'text-blue-600', description: 'Expert speaker series on wealth building' },
@@ -289,7 +306,7 @@ const submit = async () => {
                                     d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                             <span class="font-body text-sm text-light-black">{{ client.phone || client.mobile || '-'
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -407,7 +424,7 @@ const submit = async () => {
                                 <p class="font-body text-xs text-zurit-gray mb-1">Last Contact</p>
                                 <p class="font-body text-sm font-medium text-light-black">{{
                                     formatDate(client.updated_at)
-                                }}</p>
+                                    }}</p>
                             </div>
                             <div>
                                 <p class="font-body text-xs text-zurit-gray mb-1">Next Session</p>
