@@ -22,6 +22,7 @@ class Lead extends Model
         'city',
         'country',
         'source',
+        'sector',
         'added_by',
         'status',
         'value',
