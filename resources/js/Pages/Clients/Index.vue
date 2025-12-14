@@ -11,12 +11,28 @@ const total = ref(0);
 const searchTerm = ref('');
 const filterType = ref(null);
 const loading = ref(false);
+const showEmptyState = ref(false);
 const showModal = ref(false);
 const selectedClient = ref(null);
 const startInEditMode = ref(false);
+let loadingTimeout = null;
 
 const fetchClients = async (search = '') => {
     loading.value = true;
+    showEmptyState.value = false;
+
+    // Clear any existing timeout
+    if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+    }
+
+    // Set timeout to show empty state after 5 seconds
+    loadingTimeout = setTimeout(() => {
+        if (clients.value.length === 0) {
+            showEmptyState.value = true;
+        }
+    }, 5000);
+
     try {
         const params = {
             per_page: 50,
@@ -30,10 +46,22 @@ const fetchClients = async (search = '') => {
         const response = await window.axios.get('/api/clients', { params });
         clients.value = response.data.data || [];
         total.value = response.data.total || 0;
+
+        // If we got data, clear the timeout and hide empty state
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+        }
+        showEmptyState.value = false;
     } catch (error) {
         console.error('Error fetching clients:', error);
         clients.value = [];
         total.value = 0;
+
+        // On error, show empty state immediately
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+        }
+        showEmptyState.value = true;
     } finally {
         loading.value = false;
     }
@@ -127,7 +155,8 @@ const closeModal = () => {
                     :avg-progress="75" :active-clients="8" :paused-clients="3" :completed="5" @export="handleExport"
                     @add-lead="handleAddLead" @search="handleSearch" @filter="handleFilter" />
 
-                <ClientList :clients="clients" :total="total" @view="handleView" @edit="handleEdit" />
+                <ClientList :clients="clients" :total="total" :loading="loading" :show-empty-state="showEmptyState"
+                    @view="handleView" @edit="handleEdit" />
 
                 <!-- Client View Modal -->
                 <ClientViewModal :show="showModal" :client="selectedClient" :initial-edit-mode="startInEditMode"

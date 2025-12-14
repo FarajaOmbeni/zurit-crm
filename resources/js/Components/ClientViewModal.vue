@@ -289,7 +289,7 @@ const submit = async () => {
                                     d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                             <span class="font-body text-sm text-light-black">{{ client.phone || client.mobile || '-'
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -356,6 +356,49 @@ const submit = async () => {
                         <!-- Left Column -->
                         <div class="space-y-4">
                             <div>
+                                <p class="font-body text-xs text-zurit-gray mb-1">Name</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.name || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="font-body text-xs text-zurit-gray mb-1">Position</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.position || '-' }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="font-body text-xs text-zurit-gray mb-1">Company</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.company || '-' }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="font-body text-xs text-zurit-gray mb-1">Email</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.email || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="font-body text-xs text-zurit-gray mb-1">Phone</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.phone ||
+                                    client.mobile || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="font-body text-xs text-zurit-gray mb-1">City</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.city || '-' }}</p>
+                            </div>
+                        </div>
+                        <!-- Right Column -->
+                        <div class="space-y-4">
+                            <div>
+                                <p class="font-body text-xs text-zurit-gray mb-1">Country</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.country || '-' }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="font-body text-xs text-zurit-gray mb-1">Source</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.source || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="font-body text-xs text-zurit-gray mb-1">Sector</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.sector || '-' }}</p>
+                            </div>
+                            <div>
                                 <p class="font-body text-xs text-zurit-gray mb-1">Join Date</p>
                                 <p class="font-body text-sm font-medium text-light-black">{{ formatDate(client.won_at ||
                                     client.created_at) }}</p>
@@ -364,18 +407,7 @@ const submit = async () => {
                                 <p class="font-body text-xs text-zurit-gray mb-1">Last Contact</p>
                                 <p class="font-body text-sm font-medium text-light-black">{{
                                     formatDate(client.updated_at)
-                                }}</p>
-                            </div>
-                        </div>
-                        <!-- Right Column -->
-                        <div class="space-y-4">
-                            <div>
-                                <p class="font-body text-xs text-zurit-gray mb-1">Location</p>
-                                <p class="font-body text-sm font-medium text-light-black">
-                                    {{ client.city && client.country ? `${client.city}, ${client.country}` :
-                                        (client.city ||
-                                            client.country || '-') }}
-                                </p>
+                                    }}</p>
                             </div>
                             <div>
                                 <p class="font-body text-xs text-zurit-gray mb-1">Next Session</p>
@@ -386,12 +418,6 @@ const submit = async () => {
                                 <p class="font-body text-xs text-zurit-gray mb-1">Salesperson</p>
                                 <p class="font-body text-sm font-medium text-light-black">
                                     {{ client.added_by?.name || client.addedBy?.name || '-' }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="font-body text-xs text-zurit-gray mb-1">Email</p>
-                                <p class="font-body text-sm font-medium text-light-black">
-                                    {{ client.added_by?.email || client.addedBy?.email || '-' }}
                                 </p>
                             </div>
                         </div>
