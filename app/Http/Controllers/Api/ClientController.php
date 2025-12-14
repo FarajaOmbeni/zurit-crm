@@ -73,6 +73,7 @@ class ClientController extends Controller
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],
+            'sector' => ['nullable', 'string', 'max:255'],
             'value' => ['nullable', 'numeric', 'min:0'],
             'product' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
