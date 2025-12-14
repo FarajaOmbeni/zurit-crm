@@ -229,8 +229,7 @@ const handleEdit = (client) => {
                                                 {{ client.company || client.name }}
                                             </p>
                                             <p class="font-body text-xs text-zurit-gray mt-1">
-                                                {{ client.company ? client.name : (client.position || 'Individual
-                                                client')
+                                                {{ client.company ? client.name : (client.position || 'Individual client')
                                                 }}
                                             </p>
                                         </div>
