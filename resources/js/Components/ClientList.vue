@@ -1,6 +1,4 @@
 <script setup>
-import { router } from '@inertiajs/vue3';
-
 defineProps({
     clients: {
         type: Array,
