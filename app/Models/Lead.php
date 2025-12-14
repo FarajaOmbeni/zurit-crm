@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -73,6 +74,16 @@ class Lead extends Model
     public function followUpSchedules(): HasMany
     {
         return $this->hasMany(FollowUpSchedule::class);
+    }
+
+    /**
+     * Get all products for this lead.
+     */
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class)
+            ->withPivot('product_name', 'enrolled_at')
+            ->withTimestamps();
     }
 
     /**

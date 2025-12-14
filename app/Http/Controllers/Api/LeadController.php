@@ -44,7 +44,7 @@ class LeadController extends Controller
 
         // Pagination
         $perPage = $request->get('per_page', 15);
-        $leads = $query->with('addedBy')
+        $leads = $query->with(['addedBy', 'products'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
@@ -89,7 +89,7 @@ class LeadController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $lead = Lead::with(['addedBy', 'activities.user', 'tasks.createdBy', 'followUpSchedules'])
+        $lead = Lead::with(['addedBy', 'activities.user', 'tasks.createdBy', 'followUpSchedules', 'products'])
             ->findOrFail($id);
 
         $this->authorize('view', $lead);
@@ -228,7 +228,7 @@ class LeadController extends Controller
         // Exclude clients
         $query->where('is_client', false);
 
-        $leads = $query->with('addedBy')
+        $leads = $query->with(['addedBy', 'products'])
             ->orderBy('created_at', 'desc')
             ->get();
 

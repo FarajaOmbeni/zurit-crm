@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
 {
@@ -21,4 +22,14 @@ class Product extends Model
         'price' => 'decimal:2',
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Get all leads that have this product.
+     */
+    public function leads(): BelongsToMany
+    {
+        return $this->belongsToMany(Lead::class)
+            ->withPivot('product_name', 'enrolled_at')
+            ->withTimestamps();
+    }
 }

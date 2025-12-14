@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Lead;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class LeadSeeder extends Seeder
 {
@@ -1011,19 +1013,29 @@ class LeadSeeder extends Seeder
         ];
 
         // Create leads
-        foreach ($leads as $lead) {
-            Lead::firstOrCreate(
-                ['email' => $lead['email']],
-                $lead
+        foreach ($leads as $leadData) {
+            $lead = Lead::firstOrCreate(
+                ['email' => $leadData['email']],
+                $leadData
             );
+
+            // Add products to pivot table if product field exists
+            if (isset($leadData['product']) && !empty($leadData['product'])) {
+                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at);
+            }
         }
 
         // Create clients
-        foreach ($clients as $client) {
-            Lead::firstOrCreate(
-                ['email' => $client['email']],
-                $client
+        foreach ($clients as $clientData) {
+            $client = Lead::firstOrCreate(
+                ['email' => $clientData['email']],
+                $clientData
             );
+
+            // Add products to pivot table if product field exists
+            if (isset($clientData['product']) && !empty($clientData['product'])) {
+                $this->attachProductsToLead($client, $clientData['product'], $client->created_at);
+            }
         }
 
         // Additional leads for existing users
@@ -1244,11 +1256,16 @@ class LeadSeeder extends Seeder
             ],
         ];
 
-        foreach ($user3Leads as $lead) {
-            Lead::firstOrCreate(
-                ['email' => $lead['email']],
-                $lead
+        foreach ($user3Leads as $leadData) {
+            $lead = Lead::firstOrCreate(
+                ['email' => $leadData['email']],
+                $leadData
             );
+
+            // Add products to pivot table if product field exists
+            if (isset($leadData['product']) && !empty($leadData['product'])) {
+                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at);
+            }
         }
 
         // Additional leads for User ID 4 (10 leads)
@@ -1442,18 +1459,28 @@ class LeadSeeder extends Seeder
             ],
         ];
 
-        foreach ($user3Leads as $lead) {
-            Lead::firstOrCreate(
-                ['email' => $lead['email']],
-                $lead
+        foreach ($user3Leads as $leadData) {
+            $lead = Lead::firstOrCreate(
+                ['email' => $leadData['email']],
+                $leadData
             );
+
+            // Add products to pivot table if product field exists
+            if (isset($leadData['product']) && !empty($leadData['product'])) {
+                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at);
+            }
         }
 
-        foreach ($user4Leads as $lead) {
-            Lead::firstOrCreate(
-                ['email' => $lead['email']],
-                $lead
+        foreach ($user4Leads as $leadData) {
+            $lead = Lead::firstOrCreate(
+                ['email' => $leadData['email']],
+                $leadData
             );
+
+            // Add products to pivot table if product field exists
+            if (isset($leadData['product']) && !empty($leadData['product'])) {
+                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at);
+            }
         }
 
         // Additional leads for User ID 5 (10 leads)
@@ -1647,13 +1674,67 @@ class LeadSeeder extends Seeder
             ],
         ];
 
-        foreach ($user5Leads as $lead) {
-            Lead::firstOrCreate(
-                ['email' => $lead['email']],
-                $lead
+        foreach ($user5Leads as $leadData) {
+            $lead = Lead::firstOrCreate(
+                ['email' => $leadData['email']],
+                $leadData
             );
+
+            // Add products to pivot table if product field exists
+            if (isset($leadData['product']) && !empty($leadData['product'])) {
+                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at);
+            }
         }
 
         $this->command->info('All leads seeded successfully!');
+    }
+
+    /**
+     * Attach products to a lead by parsing product string and creating pivot table entries.
+     *
+     * @param Lead $lead
+     * @param string $productString Comma-separated product names
+     * @param \Carbon\Carbon|null $enrolledAt
+     * @return void
+     */
+    private function attachProductsToLead(Lead $lead, string $productString, $enrolledAt = null): void
+    {
+        if (empty($productString)) {
+            return;
+        }
+
+        // Split product string by comma
+        $productNames = array_map('trim', explode(',', $productString));
+        $productNames = array_filter($productNames); // Remove empty values
+
+        foreach ($productNames as $productName) {
+            // Try to find matching product in products table
+            $product = Product::where('name', $productName)->first();
+
+            // Check if this relationship already exists
+            $exists = DB::table('lead_product')
+                ->where('lead_id', $lead->id)
+                ->where(function ($query) use ($product, $productName) {
+                    if ($product) {
+                        $query->where('product_id', $product->id);
+                    } else {
+                        $query->whereNull('product_id')
+                            ->where('product_name', $productName);
+                    }
+                })
+                ->exists();
+
+            if (!$exists) {
+                // Insert into pivot table
+                DB::table('lead_product')->insert([
+                    'lead_id' => $lead->id,
+                    'product_id' => $product ? $product->id : null,
+                    'product_name' => $product ? null : $productName, // Store name if product doesn't exist
+                    'enrolled_at' => $enrolledAt ?? now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
     }
 }

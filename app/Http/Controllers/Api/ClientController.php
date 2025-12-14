@@ -34,7 +34,7 @@ class ClientController extends Controller
 
         // Pagination
         $perPage = $request->get('per_page', 15);
-        $clients = $query->with('addedBy')
+        $clients = $query->with(['addedBy', 'products'])
             ->orderBy('won_at', 'desc')
             ->paginate($perPage);
 
@@ -47,7 +47,7 @@ class ClientController extends Controller
     public function show(string $id): JsonResponse
     {
         $client = Lead::where('is_client', true)
-            ->with(['addedBy', 'activities.user', 'tasks.createdBy'])
+            ->with(['addedBy', 'activities.user', 'tasks.createdBy', 'products'])
             ->findOrFail($id);
 
         $this->authorize('view', $client);
