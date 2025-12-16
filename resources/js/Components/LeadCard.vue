@@ -81,19 +81,15 @@ const handleNotes = (event) => {
 <template>
     <div draggable="true" @dragstart="handleDragStart" @dragend="handleDragEnd"
         class="cursor-move rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-        <!-- Lead Title -->
-        <h4 class="font-heading text-base font-semibold text-light-black mb-3">
-            {{ lead.product || 'Untitled Lead' }}
+        <!-- Company Name as Title -->
+        <h4 class="font-heading text-base font-semibold text-light-black mb-2">
+            {{ lead.company || 'N/A' }}
         </h4>
 
-        <!-- Company -->
-        <div class="flex items-center gap-2 mb-2">
-            <svg class="h-4 w-4 text-zurit-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            <span class="font-body text-sm text-zurit-gray">{{ lead.company || 'N/A' }}</span>
-        </div>
+        <!-- Lead product -->
+        <p class="font-body text-sm text-zurit-gray mb-3">
+            {{ lead.product || 'Untitled Lead' }}
+        </p>
 
         <!-- Contact Person -->
         <div class="flex items-center gap-2 mb-2">
