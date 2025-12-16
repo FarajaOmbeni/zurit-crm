@@ -2,7 +2,7 @@
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
-defineProps({
+const props = defineProps({
     title: {
         type: String,
         default: 'Leads Pipeline',
@@ -27,12 +27,17 @@ defineProps({
         type: Number,
         default: 5,
     },
+    companySortOrder: {
+        type: String,
+        default: null,
+        validator: (value) => value === null || value === 'asc' || value === 'desc',
+    },
 });
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
 
-const emit = defineEmits(['export', 'addLead', 'search', 'filter']);
+const emit = defineEmits(['export', 'addLead', 'search', 'filter', 'sort']);
 
 const handleExport = () => {
     emit('export');
@@ -48,6 +53,19 @@ const handleSearch = (event) => {
 
 const handleFilter = (filterType) => {
     emit('filter', filterType);
+};
+
+const handleCompanySort = () => {
+    // Cycle through: null -> 'asc' -> 'desc' -> null
+    let nextOrder = null;
+    if (props.companySortOrder === null) {
+        nextOrder = 'asc';
+    } else if (props.companySortOrder === 'asc') {
+        nextOrder = 'desc';
+    } else {
+        nextOrder = null;
+    }
+    emit('sort', { field: 'company', order: nextOrder });
 };
 </script>
 
@@ -102,14 +120,14 @@ const handleFilter = (filterType) => {
             <div class="rounded-lg bg-pink-100 p-6 shadow-sm">
                 <h3 class="font-body text-sm font-medium text-pink-800">Active Clients</h3>
                 <p class="mt-2 font-heading text-3xl font-bold text-pink-900">{{ String(activeClients).padStart(2, '0')
-                    }}</p>
+                }}</p>
             </div>
 
             <!-- Paused Clients Card -->
             <div class="rounded-lg bg-blue-100 p-6 shadow-sm">
                 <h3 class="font-body text-sm font-medium text-blue-800">Paused Clients</h3>
                 <p class="mt-2 font-heading text-3xl font-bold text-blue-900">{{ String(pausedClients).padStart(2, '0')
-                    }}</p>
+                }}</p>
             </div>
 
             <!-- Completed Card -->
@@ -125,31 +143,49 @@ const handleFilter = (filterType) => {
             <!-- Search Bar -->
             <div class="flex-1">
                 <div class="relative">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center h-full pl-3">
+                    <div
+                        class="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center h-full pl-3">
                         <svg class="h-5 w-5 text-zurit-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
-                    <input
-                        type="text"
-                        @input="handleSearch"
-                        placeholder="Search client, companies, services..."
+                    <input type="text" @input="handleSearch" placeholder="Search client, companies, services..."
                         class="block w-full rounded-lg border border-gray-300 bg-white py-2 pl-12 pr-3 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                        style="text-indent:1rem;"
-                    />
+                        style="text-indent:1rem;" />
                 </div>
             </div>
 
             <!-- Sort by Company Name Button -->
             <div class="flex items-center space-x-3">
-                <button @click="handleFilter('company')"
-                    class="inline-flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-4 py-2 font-body text-sm font-medium text-light-black transition-colors hover:bg-light-gray focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2">
+                <button @click="handleCompanySort" :class="[
+                    'inline-flex items-center space-x-2 rounded-lg border px-4 py-2 font-body text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2',
+                    props.companySortOrder === null
+                        ? 'border-gray-300 bg-white text-light-black hover:bg-light-gray'
+                        : 'border-zurit-purple bg-zurit-purple/5 text-zurit-purple hover:bg-zurit-purple/10'
+                ]">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 17V7a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10M7 20h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2z" />
                     </svg>
                     <span>Company Name</span>
+                    <!-- Sort Arrow -->
+                    <div class="flex flex-col">
+                        <!-- Up Arrow (Ascending) -->
+                        <svg v-if="props.companySortOrder === 'asc'" class="h-3 w-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                        </svg>
+                        <!-- Down Arrow (Descending) -->
+                        <svg v-else-if="props.companySortOrder === 'desc'" class="h-3 w-3" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <!-- No Arrow (Default) -->
+                        <svg v-else class="h-3 w-3 opacity-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                        </svg>
+                    </div>
                 </button>
 
                 <!-- Date Filter -->

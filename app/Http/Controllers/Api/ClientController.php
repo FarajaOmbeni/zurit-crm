@@ -32,10 +32,26 @@ class ClientController extends Controller
             });
         }
 
+        // Apply sorting
+        if ($request->has('sort_by') && $request->has('sort_order')) {
+            $sortBy = $request->get('sort_by');
+            $sortOrder = $request->get('sort_order');
+
+            // Validate sort field and order
+            if (
+                in_array($sortBy, ['company', 'name', 'email', 'created_at', 'won_at']) &&
+                in_array($sortOrder, ['asc', 'desc'])
+            ) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+        } else {
+            // Default sorting by won_at desc
+            $query->orderBy('won_at', 'desc');
+        }
+
         // Pagination
         $perPage = $request->get('per_page', 15);
         $clients = $query->with(['addedBy', 'products'])
-            ->orderBy('won_at', 'desc')
             ->paginate($perPage);
 
         return response()->json($clients);
