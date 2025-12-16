@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Route;
 // Using 'auth' middleware for session-based authentication (works with Inertia.js)
 // Sanctum is available for token-based authentication if needed for external APIs
 Route::middleware(['auth', 'verified'])->group(function () {
-    
+
     // Dashboard APIs
     Route::prefix('dashboard')->group(function () {
         Route::get('/overview', [DashboardController::class, 'overview'])->name('api.dashboard.overview');
@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [LeadController::class, 'index'])->name('api.leads.index');
         Route::post('/', [LeadController::class, 'store'])->name('api.leads.store');
         Route::get('/kanban', [LeadController::class, 'kanban'])->name('api.leads.kanban');
+        Route::get('/pipeline-stats', [LeadController::class, 'pipelineStats'])->name('api.leads.pipeline-stats');
         Route::get('/{id}', [LeadController::class, 'show'])->name('api.leads.show');
         Route::put('/{id}', [LeadController::class, 'update'])->name('api.leads.update');
         Route::patch('/{id}/status', [LeadController::class, 'updateStatus'])->name('api.leads.update-status');
@@ -113,4 +114,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{id}/team', [UserController::class, 'team'])->name('api.users.team');
     });
 });
-

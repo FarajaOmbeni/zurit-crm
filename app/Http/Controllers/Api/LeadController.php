@@ -225,8 +225,11 @@ class LeadController extends Controller
         $user = Auth::user();
         $query = $this->getAuthorizedLeadsQuery($user);
 
-        // Exclude clients
-        $query->where('is_client', false);
+        // Include active leads and won leads (for Closing column), but exclude lost leads
+        $query->where(function ($q) {
+            $q->where('is_client', false)
+                ->orWhere('status', 'won');
+        })->where('status', '!=', 'lost');
 
         $leads = $query->with(['addedBy', 'products'])
             ->orderBy('created_at', 'desc')
@@ -239,7 +242,49 @@ class LeadController extends Controller
 
         return response()->json([
             'leads' => $grouped,
-            'statuses' => ['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won', 'lost'],
+            'statuses' => ['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won'],
+        ]);
+    }
+
+    /**
+     * Get pipeline statistics for the header.
+     */
+    public function pipelineStats(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+
+        // Total Pipeline Value (sum of all active leads' values)
+        $totalPipeline = $this->getAuthorizedLeadsQuery($user)
+            ->where('is_client', false)
+            ->where('status', '!=', 'lost')
+            ->sum('value') ?? 0;
+
+        // Total Leads (excluding clients and lost)
+        $totalLeads = $this->getAuthorizedLeadsQuery($user)
+            ->where('is_client', false)
+            ->where('status', '!=', 'lost')
+            ->count();
+
+        // Closed this month (won leads this month)
+        $closedThisMonth = $this->getAuthorizedLeadsQuery($user)
+            ->where('status', 'won')
+            ->whereMonth('won_at', now()->month)
+            ->whereYear('won_at', now()->year)
+            ->count();
+
+        // Total this month (total pipeline value for leads created this month)
+        $totalThisMonth = $this->getAuthorizedLeadsQuery($user)
+            ->where('is_client', false)
+            ->where('status', '!=', 'lost')
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('value') ?? 0;
+
+        return response()->json([
+            'totalPipeline' => number_format($totalPipeline, 0, '.', ','),
+            'totalLeads' => $totalLeads,
+            'closedThisMonth' => $closedThisMonth,
+            'totalThisMonth' => number_format($totalThisMonth, 0, '.', ','),
         ]);
     }
 
