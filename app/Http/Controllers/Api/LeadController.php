@@ -58,18 +58,19 @@ class LeadController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
             'position' => ['nullable', 'string', 'max:255'],
             'company' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:255'],
-            'mobile' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'], // Contact email is required
+            'phone' => ['required', 'string', 'max:255'], // Phone number is required
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', Rule::in(['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won', 'lost'])],
             'value' => ['nullable', 'numeric', 'min:0'],
-            'product' => ['nullable', 'string', 'max:255'],
+            'product' => ['nullable', 'string', 'max:255'], // This is the service type field
+            'product_ids' => ['nullable', 'array'],
+            'product_ids.*' => ['integer', 'exists:products,id'],
             'expected_close_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -80,7 +81,27 @@ class LeadController extends Controller
             'status' => $validated['status'] ?? 'new_lead',
         ]);
 
-        $lead->load('addedBy');
+        // Associate lead with selected products (or all active products if none selected)
+        $productIds = $validated['product_ids'] ?? [];
+
+        if (empty($productIds)) {
+            // If no products selected, associate with all active products
+            $products = Product::where('is_active', true)->pluck('id');
+        } else {
+            // Use selected products
+            $products = collect($productIds);
+        }
+
+        foreach ($products as $productId) {
+            $lead->products()->attach($productId, [
+                'status' => 'new_lead',
+                'enrolled_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $lead->load(['addedBy', 'products']);
 
         return response()->json($lead, 201);
     }
@@ -112,7 +133,6 @@ class LeadController extends Controller
             'company' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
-            'mobile' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],

@@ -26,6 +26,7 @@ const newNote = ref('');
 const loading = ref(false);
 const saving = ref(false);
 const error = ref(null);
+const notification = ref({ type: null, message: '' });
 
 // Parse notes string into array of note objects
 const parsedNotes = computed(() => {
@@ -123,12 +124,24 @@ const addNote = async () => {
         notes.value = response.data.notes || '';
         newNote.value = '';
 
+        // Show success notification
+        notification.value = {
+            type: 'success',
+            message: 'Note added successfully!',
+        };
+
         // Emit event to parent
         emit('note-added', {
             leadId: props.lead.id,
             productId: props.productId,
             notes: notes.value,
         });
+
+        // Close modal after 1.5 seconds
+        setTimeout(() => {
+            notification.value = { type: null, message: '' };
+            emit('close');
+        }, 1500);
     } catch (err) {
         console.error('Error adding note:', err);
         error.value = err.response?.data?.message || 'Failed to add note';
@@ -260,6 +273,18 @@ watch(() => [props.lead, props.productId], () => {
                         </span>
                         <span v-else>Add Note</span>
                     </PrimaryButton>
+                </div>
+            </div>
+
+            <!-- Success Notification -->
+            <div v-if="notification.type === 'success'"
+                class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+                <div
+                    class="bg-green-50 border border-green-200 rounded-lg shadow-lg px-6 py-4 flex items-center space-x-3">
+                    <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span class="font-body text-sm font-medium text-green-800">{{ notification.message }}</span>
                 </div>
             </div>
         </div>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
+import AddLeadModal from './AddLeadModal.vue';
 
 const props = defineProps({
     title: {
@@ -28,6 +29,7 @@ const totalLeads = ref(0);
 const closedThisMonth = ref(0);
 const totalThisMonth = ref('Ksh 0');
 const loading = ref(true);
+const showAddLeadModal = ref(false);
 
 const fetchStats = async () => {
     if (!props.productId) {
@@ -71,7 +73,18 @@ const handleExport = () => {
 };
 
 const handleAddLead = () => {
-    emit('addLead');
+    showAddLeadModal.value = true;
+};
+
+const handleCloseAddLeadModal = () => {
+    showAddLeadModal.value = false;
+};
+
+const handleLeadAdded = (newLead) => {
+    // Refresh stats to show updated counts
+    fetchStats();
+    showAddLeadModal.value = false;
+    emit('addLead', newLead);
 };
 
 const handleSearch = (event) => {
@@ -204,5 +217,8 @@ const handleFilter = (filterType) => {
                 </button>
             </div>
         </div>
+
+        <!-- Add Lead Modal -->
+        <AddLeadModal :show="showAddLeadModal" @close="handleCloseAddLeadModal" @lead-added="handleLeadAdded" />
     </div>
 </template>

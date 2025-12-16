@@ -19,6 +19,10 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    isLead: {
+        type: Boolean,
+        default: false, // If true, uses /api/leads endpoint instead of /api/clients
+    },
 });
 
 const emit = defineEmits(['close', 'edit', 'updated']);
@@ -50,7 +54,7 @@ watch(() => props.client, (newClient) => {
             position: newClient.position || '',
             company: newClient.company || '',
             email: newClient.email || '',
-            phone: newClient.phone || newClient.mobile || '',
+            phone: newClient.phone || '',
             city: newClient.city || '',
             country: newClient.country || '',
             source: newClient.source || '',
@@ -165,7 +169,7 @@ const cancelEdit = () => {
             position: props.client.position || '',
             company: props.client.company || '',
             email: props.client.email || '',
-            phone: props.client.phone || props.client.mobile || '',
+            phone: props.client.phone || '',
             city: props.client.city || '',
             country: props.client.country || '',
             source: props.client.source || '',
@@ -185,7 +189,9 @@ const submit = async () => {
     };
 
     try {
-        const response = await window.axios.put(`/api/clients/${props.client.id}`, form.value);
+        const endpoint = props.isLead ? `/api/leads/${props.client.id}` : `/api/clients/${props.client.id}`;
+        const payload = form.value;
+        const response = await window.axios.put(endpoint, payload);
 
         // Show success message
         notification.value = {
@@ -305,8 +311,7 @@ const submit = async () => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
-                            <span class="font-body text-sm text-light-black">{{ client.phone || client.mobile || '-'
-                            }}</span>
+                            <span class="font-body text-sm text-light-black">{{ client.phone || '-' }}</span>
                         </div>
                     </div>
                 </div>
@@ -392,8 +397,7 @@ const submit = async () => {
                             </div>
                             <div>
                                 <p class="font-body text-xs text-zurit-gray mb-1">Phone</p>
-                                <p class="font-body text-sm font-medium text-light-black">{{ client.phone ||
-                                    client.mobile || '-' }}</p>
+                                <p class="font-body text-sm font-medium text-light-black">{{ client.phone || '-' }}</p>
                             </div>
                             <div>
                                 <p class="font-body text-xs text-zurit-gray mb-1">City</p>

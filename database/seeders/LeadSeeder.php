@@ -34,7 +34,6 @@ class LeadSeeder extends Seeder
                 'company' => 'Tech Solutions Ltd',
                 'email' => 'john.mwangi@techsolutions.co.ke',
                 'phone' => '+254712345678',
-                'mobile' => '+254712345678',
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -52,7 +51,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Green Energy Corp',
                 'email' => 'sarah.wanjiku@greenenergy.co.ke',
                 'phone' => '+254723456789',
-                'mobile' => '+254723456789',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -70,7 +69,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Manufacturing Industries',
                 'email' => 'david.ochieng@manufacturing.co.ke',
                 'phone' => '+254734567890',
-                'mobile' => '+254734567890',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -88,7 +87,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Logistics Pro',
                 'email' => 'mary.akinyi@logisticspro.co.ke',
                 'phone' => '+254745678901',
-                'mobile' => '+254745678901',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -106,7 +105,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Financial Services Group',
                 'email' => 'peter.kamau@fsg.co.ke',
                 'phone' => '+254756789012',
-                'mobile' => '+254756789012',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -130,7 +129,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Construction Masters',
                 'email' => 'james.kariuki@constructionmasters.co.ke',
                 'phone' => '+254767890123',
-                'mobile' => '+254767890123',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -150,7 +149,7 @@ class LeadSeeder extends Seeder
                 'company' => 'StartUp Ventures',
                 'email' => 'alice.wambui@startup.co.ke',
                 'phone' => '+254790123456',
-                'mobile' => '+254790123456',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -170,7 +169,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Export Solutions',
                 'email' => 'robert.maina@export.co.ke',
                 'phone' => '+254701234567',
-                'mobile' => '+254701234567',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -192,7 +191,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Healthcare Services',
                 'email' => 'grace.njeri@healthcare.co.ke',
                 'phone' => '+254778901234',
-                'mobile' => '+254778901234',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -212,7 +211,6 @@ class LeadSeeder extends Seeder
                 'company' => 'Banking Solutions',
                 'email' => 'catherine.mutua@banking.co.ke',
                 'phone' => '+254712345678',
-                'mobile' => '+254712345678',
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -232,7 +230,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Transport Co',
                 'email' => 'daniel.omondi@transport.co.ke',
                 'phone' => '+254723456789',
-                'mobile' => '+254723456789',
+
                 'city' => 'Kisumu',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -252,7 +250,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Legal Associates',
                 'email' => 'elizabeth.wanjiru@legal.co.ke',
                 'phone' => '+254734567890',
-                'mobile' => '+254734567890',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -272,7 +270,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Agriculture Holdings',
                 'email' => 'francis.kipchoge@agri.co.ke',
                 'phone' => '+254745678901',
-                'mobile' => '+254745678901',
+
                 'city' => 'Eldoret',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -292,7 +290,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Hospitality Group',
                 'email' => 'hannah.chebet@hospitality.co.ke',
                 'phone' => '+254756789012',
-                'mobile' => '+254756789012',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -312,7 +310,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Tech Innovations',
                 'email' => 'isaac.mutiso@techinno.co.ke',
                 'phone' => '+254767890123',
-                'mobile' => '+254767890123',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -334,7 +332,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Retail Chain Ltd',
                 'email' => 'michael.otieno@retailchain.co.ke',
                 'phone' => '+254789012345',
-                'mobile' => '+254789012345',
+
                 'city' => 'Kisumu',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -354,7 +352,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Manufacturing Ltd',
                 'email' => 'jane.auma@manufacturing.co.ke',
                 'phone' => '+254791234567',
-                'mobile' => '+254791234567',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -376,7 +374,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Education Services',
                 'email' => 'kevin.ndungu@education.co.ke',
                 'phone' => '+254702345678',
-                'mobile' => '+254702345678',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -396,7 +394,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Media House',
                 'email' => 'linda.nyambura@media.co.ke',
                 'phone' => '+254713456789',
-                'mobile' => '+254713456789',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -416,7 +414,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Real Estate Developers',
                 'email' => 'moses.kamau@realestate.co.ke',
                 'phone' => '+254724567890',
-                'mobile' => '+254724567890',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -436,7 +434,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Telecom Services',
                 'email' => 'nancy.jepkosgei@telecom.co.ke',
                 'phone' => '+254735678901',
-                'mobile' => '+254735678901',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -456,7 +454,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Consulting Firm',
                 'email' => 'oscar.wekesa@consulting.co.ke',
                 'phone' => '+254746789012',
-                'mobile' => '+254746789012',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -476,7 +474,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Insurance Co',
                 'email' => 'patricia.adhiambo@insurance.co.ke',
                 'phone' => '+254757890123',
-                'mobile' => '+254757890123',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -496,7 +494,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Pharmaceutical Ltd',
                 'email' => 'quinn.okoth@pharma.co.ke',
                 'phone' => '+254768901234',
-                'mobile' => '+254768901234',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -516,7 +514,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Aviation Services',
                 'email' => 'rachel.waweru@aviation.co.ke',
                 'phone' => '+254779012345',
-                'mobile' => '+254779012345',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -536,7 +534,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Security Services',
                 'email' => 'samuel.kiprotich@security.co.ke',
                 'phone' => '+254780123456',
-                'mobile' => '+254780123456',
+
                 'city' => 'Nakuru',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -556,7 +554,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Energy Solutions',
                 'email' => 'teresa.muthoni@energy.co.ke',
                 'phone' => '+254791234567',
-                'mobile' => '+254791234567',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -576,7 +574,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Mining Corporation',
                 'email' => 'vincent.onyango@mining.co.ke',
                 'phone' => '+254702345678',
-                'mobile' => '+254702345678',
+
                 'city' => 'Eldoret',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -596,7 +594,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Water Services',
                 'email' => 'winnie.nyokabi@water.co.ke',
                 'phone' => '+254713456789',
-                'mobile' => '+254713456789',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -618,7 +616,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Fashion Retail',
                 'email' => 'xavier.mugo@fashion.co.ke',
                 'phone' => '+254724567890',
-                'mobile' => '+254724567890',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -638,7 +636,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Tourism Agency',
                 'email' => 'yvonne.nekesa@tourism.co.ke',
                 'phone' => '+254735678901',
-                'mobile' => '+254735678901',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -658,7 +656,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Logistics Hub',
                 'email' => 'zachary.kimani@logistics.co.ke',
                 'phone' => '+254746789012',
-                'mobile' => '+254746789012',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -678,7 +676,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Food Processing',
                 'email' => 'angela.wangari@foodproc.co.ke',
                 'phone' => '+254757890123',
-                'mobile' => '+254757890123',
+
                 'city' => 'Thika',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -698,7 +696,7 @@ class LeadSeeder extends Seeder
                 'company' => 'E-commerce Platform',
                 'email' => 'brian.ochieng@ecommerce.co.ke',
                 'phone' => '+254768901234',
-                'mobile' => '+254768901234',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -718,7 +716,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Engineering Firm',
                 'email' => 'caroline.achieng@engineering.co.ke',
                 'phone' => '+254779012345',
-                'mobile' => '+254779012345',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -738,7 +736,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Chemical Industries',
                 'email' => 'dennis.wanjala@chemicals.co.ke',
                 'phone' => '+254780123456',
-                'mobile' => '+254780123456',
+
                 'city' => 'Eldoret',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -758,7 +756,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Publishing House',
                 'email' => 'edith.mwikali@publishing.co.ke',
                 'phone' => '+254791234567',
-                'mobile' => '+254791234567',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -778,7 +776,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Software Solutions',
                 'email' => 'felix.mwangi@software.co.ke',
                 'phone' => '+254702345678',
-                'mobile' => '+254702345678',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -797,7 +795,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Textile Mills',
                 'email' => 'gloria.njoki@textiles.co.ke',
                 'phone' => '+254713456789',
-                'mobile' => '+254713456789',
+
                 'city' => 'Thika',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -816,7 +814,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Automotive Dealers',
                 'email' => 'henry.kariuki@automotive.co.ke',
                 'phone' => '+254724567890',
-                'mobile' => '+254724567890',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -836,7 +834,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Electronics Store',
                 'email' => 'irene.wanjiru@electronics.co.ke',
                 'phone' => '+254735678901',
-                'mobile' => '+254735678901',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -856,7 +854,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Construction Ltd',
                 'email' => 'joseph.mutua@construction.co.ke',
                 'phone' => '+254746789012',
-                'mobile' => '+254746789012',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -876,7 +874,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Sports Management',
                 'email' => 'kagiso.muthoni@sports.co.ke',
                 'phone' => '+254757890123',
-                'mobile' => '+254757890123',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -896,7 +894,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Freight Forwarders',
                 'email' => 'lilian.akinyi@freight.co.ke',
                 'phone' => '+254768901234',
-                'mobile' => '+254768901234',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -916,7 +914,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Furniture Makers',
                 'email' => 'martin.odhiambo@furniture.co.ke',
                 'phone' => '+254779012345',
-                'mobile' => '+254779012345',
+
                 'city' => 'Kisumu',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -936,7 +934,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Accounting Firm',
                 'email' => 'naomi.cherotich@accounting.co.ke',
                 'phone' => '+254780123456',
-                'mobile' => '+254780123456',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -956,7 +954,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Packaging Solutions',
                 'email' => 'oliver.muema@packaging.co.ke',
                 'phone' => '+254791234567',
-                'mobile' => '+254791234567',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -976,7 +974,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Audit Services',
                 'email' => 'pauline.wangui@audit.co.ke',
                 'phone' => '+254702345678',
-                'mobile' => '+254702345678',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -996,7 +994,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Beverage Company',
                 'email' => 'quincy.omondi@beverage.co.ke',
                 'phone' => '+254713456789',
-                'mobile' => '+254713456789',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -1085,7 +1083,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Digital Marketing Agency',
                 'email' => 'alex.kimathi@digitalagency.co.ke',
                 'phone' => '+254720111222',
-                'mobile' => '+254720111222',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -1103,7 +1101,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Retail Solutions Ltd',
                 'email' => 'betty.wambui@retail.co.ke',
                 'phone' => '+254720222333',
-                'mobile' => '+254720222333',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -1121,7 +1119,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Construction Plus',
                 'email' => 'charles.omondi@construction.co.ke',
                 'phone' => '+254720333444',
-                'mobile' => '+254720333444',
+
                 'city' => 'Kisumu',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -1139,7 +1137,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Logistics Express',
                 'email' => 'diana.njeri@logistics.co.ke',
                 'phone' => '+254720444555',
-                'mobile' => '+254720444555',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -1157,7 +1155,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Tech Innovators',
                 'email' => 'edward.mwangi@techinnovators.co.ke',
                 'phone' => '+254720555666',
-                'mobile' => '+254720555666',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -1177,7 +1175,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Manufacturing Corp',
                 'email' => 'faith.akinyi@mfgcorp.co.ke',
                 'phone' => '+254720666777',
-                'mobile' => '+254720666777',
+
                 'city' => 'Nakuru',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -1197,7 +1195,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Healthcare Plus',
                 'email' => 'george.kamau@healthcareplus.co.ke',
                 'phone' => '+254720777888',
-                'mobile' => '+254720777888',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -1215,7 +1213,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Financial Advisors Ltd',
                 'email' => 'hannah.wanjiku@finadvisors.co.ke',
                 'phone' => '+254720888999',
-                'mobile' => '+254720888999',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -1233,7 +1231,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Export Trading Co',
                 'email' => 'ian.ochieng@export.co.ke',
                 'phone' => '+254720999000',
-                'mobile' => '+254720999000',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -1251,7 +1249,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Tourism Services',
                 'email' => 'jane.mutua@tourism.co.ke',
                 'phone' => '+254721000111',
-                'mobile' => '+254721000111',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -1299,7 +1297,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Software Developers',
                 'email' => 'kevin.musyoka@softdev.co.ke',
                 'phone' => '+254721111222',
-                'mobile' => '+254721111222',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -1317,7 +1315,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Property Developers',
                 'email' => 'lucy.njoroge@property.co.ke',
                 'phone' => '+254721222333',
-                'mobile' => '+254721222333',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -1335,7 +1333,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Transport Solutions',
                 'email' => 'mark.wekesa@transport.co.ke',
                 'phone' => '+254721333444',
-                'mobile' => '+254721333444',
+
                 'city' => 'Kisumu',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -1353,7 +1351,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Education Services',
                 'email' => 'nancy.adhiambo@eduservices.co.ke',
                 'phone' => '+254721444555',
-                'mobile' => '+254721444555',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -1371,7 +1369,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Agriculture Holdings',
                 'email' => 'oscar.kipchoge@agriholdings.co.ke',
                 'phone' => '+254721555666',
-                'mobile' => '+254721555666',
+
                 'city' => 'Eldoret',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -1391,7 +1389,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Media Group',
                 'email' => 'patricia.nyambura@mediagroup.co.ke',
                 'phone' => '+254721666777',
-                'mobile' => '+254721666777',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -1411,7 +1409,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Insurance Brokers',
                 'email' => 'quincy.otieno@insurance.co.ke',
                 'phone' => '+254721777888',
-                'mobile' => '+254721777888',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -1429,7 +1427,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Engineering Consultants',
                 'email' => 'rachel.chebet@engineering.co.ke',
                 'phone' => '+254721888999',
-                'mobile' => '+254721888999',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -1447,7 +1445,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Pharmaceutical Supplies',
                 'email' => 'samuel.maina@pharmasupply.co.ke',
                 'phone' => '+254721999000',
-                'mobile' => '+254721999000',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -1465,7 +1463,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Retail Chain',
                 'email' => 'teresa.wangui@retailchain.co.ke',
                 'phone' => '+254722000111',
-                'mobile' => '+254722000111',
+
                 'city' => 'Nakuru',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -1536,7 +1534,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Automotive Services',
                 'email' => 'victor.kamau@automotive.co.ke',
                 'phone' => '+254722111222',
-                'mobile' => '+254722111222',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -1554,7 +1552,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Security Systems',
                 'email' => 'winnie.achieng@security.co.ke',
                 'phone' => '+254722222333',
-                'mobile' => '+254722222333',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -1572,7 +1570,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Mining Corporation',
                 'email' => 'xavier.nyaga@mining.co.ke',
                 'phone' => '+254722333444',
-                'mobile' => '+254722333444',
+
                 'city' => 'Eldoret',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -1590,7 +1588,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Hotel Chain',
                 'email' => 'yvonne.wambua@hotelchain.co.ke',
                 'phone' => '+254722444555',
-                'mobile' => '+254722444555',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',
@@ -1608,7 +1606,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Water Utilities',
                 'email' => 'zack.omondi@water.co.ke',
                 'phone' => '+254722555666',
-                'mobile' => '+254722555666',
+
                 'city' => 'Kisumu',
                 'country' => 'Kenya',
                 'source' => 'Trade Show',
@@ -1628,7 +1626,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Telecommunications',
                 'email' => 'alice.muthoni@telecom.co.ke',
                 'phone' => '+254722666777',
-                'mobile' => '+254722666777',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Website',
@@ -1648,7 +1646,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Chemical Industries',
                 'email' => 'brian.kimani@chemicals.co.ke',
                 'phone' => '+254722777888',
-                'mobile' => '+254722777888',
+
                 'city' => 'Thika',
                 'country' => 'Kenya',
                 'source' => 'Referral',
@@ -1666,7 +1664,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Legal Services',
                 'email' => 'catherine.njoki@legal.co.ke',
                 'phone' => '+254722888999',
-                'mobile' => '+254722888999',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'Cold Call',
@@ -1684,7 +1682,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Energy Solutions',
                 'email' => 'dennis.ochieng@energy.co.ke',
                 'phone' => '+254722999000',
-                'mobile' => '+254722999000',
+
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'source' => 'LinkedIn',
@@ -1702,7 +1700,7 @@ class LeadSeeder extends Seeder
                 'company' => 'Aviation Maintenance',
                 'email' => 'elizabeth.wanjiru@aviation.co.ke',
                 'phone' => '+254723000111',
-                'mobile' => '+254723000111',
+
                 'city' => 'Mombasa',
                 'country' => 'Kenya',
                 'source' => 'Email Campaign',

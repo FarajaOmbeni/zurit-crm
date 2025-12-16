@@ -3,7 +3,9 @@ import { ref, onMounted } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import LeadHeader from '@/Components/LeadHeader.vue';
 import KanbanBoard from '@/Components/KanbanBoard.vue';
+import ClientViewModal from '@/Components/ClientViewModal.vue';
 import { Head, router } from '@inertiajs/vue3';
+import axios from 'axios';
 
 const props = defineProps({
     selectedProductId: {
@@ -17,6 +19,9 @@ const props = defineProps({
 });
 
 const searchQuery = ref('');
+const showLeadModal = ref(false);
+const selectedLead = ref(null);
+const startInEditMode = ref(false);
 
 // Check if product is selected, redirect if missing
 onMounted(() => {
@@ -47,9 +52,48 @@ const handleFilter = (filterType) => {
     console.log('Filter by:', filterType);
 };
 
-const handleViewLead = (lead) => {
-    // TODO: Navigate to lead detail page
-    console.log('View lead:', lead);
+const handleViewLead = async (lead) => {
+    // Fetch full lead details
+    try {
+        const response = await axios.get(`/api/leads/${lead.id}`);
+        selectedLead.value = response.data;
+        startInEditMode.value = false;
+        showLeadModal.value = true;
+    } catch (error) {
+        console.error('Error fetching lead details:', error);
+        // Fallback to basic lead data
+        selectedLead.value = lead;
+        startInEditMode.value = false;
+        showLeadModal.value = true;
+    }
+};
+
+const handleEditLead = async (lead) => {
+    // Fetch full lead details and open in edit mode
+    try {
+        const response = await axios.get(`/api/leads/${lead.id}`);
+        selectedLead.value = response.data;
+        startInEditMode.value = true;
+        showLeadModal.value = true;
+    } catch (error) {
+        console.error('Error fetching lead details:', error);
+        // Fallback to basic lead data
+        selectedLead.value = lead;
+        startInEditMode.value = true;
+        showLeadModal.value = true;
+    }
+};
+
+const handleLeadUpdated = (updatedLead) => {
+    // Emit event to refresh kanban board if needed
+    // The kanban board will refresh on next fetch
+    console.log('Lead updated:', updatedLead);
+};
+
+const closeLeadModal = () => {
+    showLeadModal.value = false;
+    selectedLead.value = null;
+    startInEditMode.value = false;
 };
 </script>
 
@@ -65,6 +109,10 @@ const handleViewLead = (lead) => {
 
                 <KanbanBoard :search-query="searchQuery" :product-id="selectedProductId" @add-lead="handleAddLead"
                     @view-lead="handleViewLead" />
+
+                <!-- Lead View Modal (using ClientViewModal component) -->
+                <ClientViewModal :show="showLeadModal" :client="selectedLead" :initial-edit-mode="startInEditMode"
+                    :is-lead="true" @close="closeLeadModal" @edit="handleEditLead" @updated="handleLeadUpdated" />
             </div>
         </div>
         <div v-else class="flex items-center justify-center py-12">

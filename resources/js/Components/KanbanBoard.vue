@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import axios from 'axios';
 import LeadCard from './LeadCard.vue';
 import LeadNotesModal from './LeadNotesModal.vue';
+import AddLeadModal from './AddLeadModal.vue';
 
 const props = defineProps({
     searchQuery: {
@@ -25,6 +26,7 @@ const headerScrollRef = ref(null);
 const contentScrollRef = ref(null);
 const showNotesModal = ref(false);
 const selectedLeadForNotes = ref(null);
+const showAddLeadModal = ref(false);
 
 // Pipeline stages configuration
 const stages = [
@@ -185,7 +187,18 @@ const handleDrop = async (event, targetStageSlug) => {
 };
 
 const handleAddLead = (stageSlug) => {
-    emit('addLead', stageSlug);
+    showAddLeadModal.value = true;
+};
+
+const handleCloseAddLeadModal = () => {
+    showAddLeadModal.value = false;
+};
+
+const handleLeadAdded = (newLead) => {
+    // Refresh the kanban board to show the new lead
+    fetchLeads();
+    showAddLeadModal.value = false;
+    emit('addLead', newLead);
 };
 
 const handleViewLead = (lead) => {
@@ -312,7 +325,7 @@ onMounted(() => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4" />
                             </svg>
-                            <span>+ Add Client</span>
+                            <span>Add Lead</span>
                         </div>
                     </button>
 
@@ -334,6 +347,9 @@ onMounted(() => {
         <!-- Notes Modal -->
         <LeadNotesModal :show="showNotesModal" :lead="selectedLeadForNotes" :product-id="productId"
             @close="handleCloseNotesModal" @note-added="handleNoteAdded" />
+
+        <!-- Add Lead Modal -->
+        <AddLeadModal :show="showAddLeadModal" @close="handleCloseAddLeadModal" @lead-added="handleLeadAdded" />
     </div>
 </template>
 

@@ -69,7 +69,6 @@ class ClientController extends Controller
             'company' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
-            'mobile' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],

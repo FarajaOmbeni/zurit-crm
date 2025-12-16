@@ -38,7 +38,7 @@ const lastContacted = computed(() => {
 });
 
 const phoneNumber = computed(() => {
-    return props.lead.mobile || props.lead.phone || 'N/A';
+    return props.lead.phone || 'N/A';
 });
 
 const serviceType = computed(() => {
