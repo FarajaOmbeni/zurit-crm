@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import LeadsPipelineHeader from '@/Components/LeadsPipelineHeader.vue';
+import ClientsHeader from '@/Components/ClientsHeader.vue';
 import ClientList from '@/Components/ClientList.vue';
 import ClientViewModal from '@/Components/ClientViewModal.vue';
 import { Head, router } from '@inertiajs/vue3';
@@ -13,6 +13,8 @@ const lastPage = ref(1);
 const perPage = ref(15); // Default per page, will be updated from API response
 const searchTerm = ref('');
 const filterType = ref(null);
+const sortField = ref(null);
+const sortOrder = ref(null);
 const loading = ref(false);
 const showEmptyState = ref(false);
 const showModal = ref(false);
@@ -45,6 +47,12 @@ const fetchClients = async (search = '', page = 1) => {
         // Only add search parameter if it's not empty
         if (search && search.trim()) {
             params.search = search.trim();
+        }
+
+        // Add sort parameters if sorting is active
+        if (sortField.value && sortOrder.value) {
+            params.sort_by = sortField.value;
+            params.sort_order = sortOrder.value;
         }
 
         const response = await window.axios.get('/api/clients', { params });
@@ -94,12 +102,29 @@ const handleSearch = (term) => {
     searchTerm.value = term;
     // Reset to first page when searching
     currentPage.value = 1;
+    // Reset sort when searching
+    sortField.value = null;
+    sortOrder.value = null;
     fetchClients(term, 1);
 };
 
 const handleFilter = (type) => {
     filterType.value = type;
     // Reset to first page when filtering
+    currentPage.value = 1;
+    fetchClients(searchTerm.value, 1);
+};
+
+const handleSort = ({ field, order }) => {
+    if (order === null) {
+        // Reset to default (no sort)
+        sortField.value = null;
+        sortOrder.value = null;
+    } else {
+        sortField.value = field;
+        sortOrder.value = order;
+    }
+    // Reset to first page when sorting
     currentPage.value = 1;
     fetchClients(searchTerm.value, 1);
 };
@@ -166,10 +191,11 @@ const closeModal = () => {
     <AuthenticatedLayout>
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <LeadsPipelineHeader title="Client Database"
+                <ClientsHeader title="Client Database"
                     subtitle="Help clients build sustainable wealth through strategic financial guidance"
-                    :avg-progress="75" :active-clients="8" :paused-clients="3" :completed="5" @export="handleExport"
-                    @add-lead="handleAddLead" @search="handleSearch" @filter="handleFilter" />
+                    :avg-progress="75" :active-clients="8" :paused-clients="3" :completed="5"
+                    :company-sort-order="sortOrder" @export="handleExport" @add-lead="handleAddLead"
+                    @search="handleSearch" @filter="handleFilter" @sort="handleSort" />
 
                 <ClientList :clients="clients" :total="total" :current-page="currentPage" :last-page="lastPage"
                     :per-page="perPage" :loading="loading" :show-empty-state="showEmptyState" @view="handleView"
