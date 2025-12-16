@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PipelineController;
+use App\Http\Controllers\ProductSelectionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
@@ -19,9 +21,10 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/pipeline', function () {
-        return Inertia::render('Pipeline/Index');
-    })->name('pipeline');
+    Route::get('/pipeline/select-product', [ProductSelectionController::class, 'index'])->name('pipeline.select-product');
+    Route::post('/pipeline/select-product', [ProductSelectionController::class, 'select'])->name('pipeline.select-product.post');
+
+    Route::get('/pipeline', [PipelineController::class, 'index'])->name('pipeline');
 
     Route::get('/leads', function () {
         return Inertia::render('Leads/Index');

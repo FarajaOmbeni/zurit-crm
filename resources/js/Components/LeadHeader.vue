@@ -1,8 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 
-defineProps({
+const props = defineProps({
     title: {
         type: String,
         default: 'Leads Pipeline',
@@ -10,6 +10,14 @@ defineProps({
     subtitle: {
         type: String,
         default: 'Help clients build sustainable wealth through strategic financial guidance',
+    },
+    productId: {
+        type: Number,
+        required: true,
+    },
+    productName: {
+        type: String,
+        required: true,
     },
 });
 
@@ -22,8 +30,18 @@ const totalThisMonth = ref('Ksh 0');
 const loading = ref(true);
 
 const fetchStats = async () => {
+    if (!props.productId) {
+        console.warn('Product ID is required to fetch pipeline stats');
+        return;
+    }
+
+    loading.value = true;
     try {
-        const response = await axios.get('/api/leads/pipeline-stats');
+        const response = await axios.get('/api/leads/pipeline-stats', {
+            params: {
+                product_id: props.productId,
+            },
+        });
         totalPipeline.value = `Ksh ${response.data.totalPipeline}`;
         totalLeads.value = response.data.totalLeads;
         closedThisMonth.value = response.data.closedThisMonth;
@@ -35,8 +53,17 @@ const fetchStats = async () => {
     }
 };
 
+// Watch for productId changes and refetch stats
+watch(() => props.productId, (newProductId) => {
+    if (newProductId) {
+        fetchStats();
+    }
+}, { immediate: false });
+
 onMounted(() => {
-    fetchStats();
+    if (props.productId) {
+        fetchStats();
+    }
 });
 
 const handleExport = () => {
@@ -61,7 +88,13 @@ const handleFilter = (filterType) => {
         <!-- Header Section -->
         <div class="flex items-start justify-between">
             <div>
-                <h1 class="font-heading text-3xl font-bold text-light-black">{{ title }}</h1>
+                <div class="flex items-center gap-3">
+                    <h1 class="font-heading text-3xl font-bold text-light-black">{{ title }}</h1>
+                    <span v-if="productName"
+                        class="inline-flex items-center rounded-full bg-zurit-purple/10 px-3 py-1 font-body text-sm font-medium text-zurit-purple">
+                        {{ productName }}
+                    </span>
+                </div>
                 <p class="mt-2 font-body text-sm text-zurit-gray">{{ subtitle }}</p>
             </div>
 

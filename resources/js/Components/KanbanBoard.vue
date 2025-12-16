@@ -2,11 +2,16 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import axios from 'axios';
 import LeadCard from './LeadCard.vue';
+import LeadNotesModal from './LeadNotesModal.vue';
 
 const props = defineProps({
     searchQuery: {
         type: String,
         default: '',
+    },
+    productId: {
+        type: Number,
+        required: true,
     },
 });
 
@@ -18,6 +23,8 @@ const draggedLead = ref(null);
 const draggedFromColumn = ref(null);
 const headerScrollRef = ref(null);
 const contentScrollRef = ref(null);
+const showNotesModal = ref(false);
+const selectedLeadForNotes = ref(null);
 
 // Pipeline stages configuration
 const stages = [
@@ -54,12 +61,24 @@ const stages = [
 ];
 
 const fetchLeads = async () => {
+    if (!props.productId) {
+        console.warn('Product ID is required to fetch leads');
+        return;
+    }
+
     loading.value = true;
     try {
-        const response = await axios.get('/api/leads/kanban');
+        const response = await axios.get('/api/leads/kanban', {
+            params: {
+                product_id: props.productId,
+            },
+        });
         console.log('Kanban API Response:', response.data);
+        console.log('Product ID:', props.productId);
         leads.value = response.data.leads || {};
         console.log('Leads loaded:', leads.value);
+        console.log('Leads keys:', Object.keys(leads.value));
+        console.log('Total leads count:', Object.values(leads.value).flat().length);
     } catch (error) {
         console.error('Error fetching leads:', error);
         if (error.response) {
@@ -74,13 +93,19 @@ const fetchLeads = async () => {
 const getLeadsForStage = (stageSlug) => {
     const stageLeads = leads.value[stageSlug] || [];
 
+    // Debug logging
+    if (stageLeads.length > 0) {
+        console.log(`Stage ${stageSlug}: ${stageLeads.length} leads`);
+    }
+
     // Filter by search query if provided
     if (props.searchQuery) {
         const query = props.searchQuery.toLowerCase();
         return stageLeads.filter(lead =>
             lead.name?.toLowerCase().includes(query) ||
             lead.company?.toLowerCase().includes(query) ||
-            lead.product?.toLowerCase().includes(query)
+            lead.product?.toLowerCase().includes(query) ||
+            lead.product_pivot?.status?.toLowerCase().includes(query)
         );
     }
 
@@ -145,6 +170,7 @@ const handleDrop = async (event, targetStageSlug) => {
     try {
         await axios.patch(`/api/leads/${leadId}/status`, {
             status: targetStageSlug,
+            product_id: props.productId,
         });
     } catch (error) {
         console.error('Error updating lead status:', error);
@@ -166,6 +192,45 @@ const handleViewLead = (lead) => {
     emit('viewLead', lead);
 };
 
+const handleNotes = (lead) => {
+    selectedLeadForNotes.value = lead;
+    showNotesModal.value = true;
+};
+
+const handleCloseNotesModal = () => {
+    showNotesModal.value = false;
+    selectedLeadForNotes.value = null;
+};
+
+const handleNoteAdded = (eventData) => {
+    // Update the lead's product_pivot.notes in the local leads state
+    // This will cause the notesCount computed property in LeadCard to update
+    if (eventData && eventData.leadId && eventData.notes !== undefined) {
+        // Find the lead in all stages and update its product_pivot.notes
+        Object.keys(leads.value).forEach((stageSlug) => {
+            const stageLeads = leads.value[stageSlug];
+            if (Array.isArray(stageLeads)) {
+                const leadIndex = stageLeads.findIndex(l => l.id === eventData.leadId);
+                if (leadIndex !== -1) {
+                    // Create a new lead object with updated product_pivot to ensure reactivity
+                    const existingPivot = stageLeads[leadIndex].product_pivot || {};
+                    const updatedLead = {
+                        ...stageLeads[leadIndex],
+                        product_pivot: {
+                            ...existingPivot,
+                            notes: eventData.notes,
+                        },
+                    };
+                    // Create a new array with the updated lead to trigger reactivity
+                    const updatedLeads = [...stageLeads];
+                    updatedLeads[leadIndex] = updatedLead;
+                    leads.value[stageSlug] = updatedLeads;
+                }
+            }
+        });
+    }
+};
+
 const syncScroll = (sourceElement, targetElement) => {
     if (sourceElement && targetElement) {
         targetElement.scrollLeft = sourceElement.scrollLeft;
@@ -180,8 +245,17 @@ const handleContentScroll = (event) => {
     syncScroll(event.target, headerScrollRef.value);
 };
 
+// Watch for productId changes and refetch leads
+watch(() => props.productId, (newProductId) => {
+    if (newProductId) {
+        fetchLeads();
+    }
+}, { immediate: false });
+
 onMounted(() => {
-    fetchLeads();
+    if (props.productId) {
+        fetchLeads();
+    }
 });
 </script>
 
@@ -227,8 +301,8 @@ onMounted(() => {
                     :style="{ backgroundColor: getStageBackgroundColor(stage.color) }">
                     <!-- Lead Cards -->
                     <LeadCard v-for="lead in getLeadsForStage(stage.slug)" :key="lead.id" :lead="lead"
-                        @drag-start="handleDragStart($event, lead, stage.slug)" @drag-end="handleDragEnd"
-                        @view="handleViewLead" />
+                        :product-id="productId" @drag-start="handleDragStart($event, lead, stage.slug)"
+                        @drag-end="handleDragEnd" @view="handleViewLead" @notes="handleNotes" />
 
                     <!-- Add Client Button -->
                     <button v-if="stage.slug === 'new_lead'" @click="handleAddLead(stage.slug)"
@@ -256,6 +330,10 @@ onMounted(() => {
                 </div>
             </div>
         </div>
+
+        <!-- Notes Modal -->
+        <LeadNotesModal :show="showNotesModal" :lead="selectedLeadForNotes" :product-id="productId"
+            @close="handleCloseNotesModal" @note-added="handleNoteAdded" />
     </div>
 </template>
 

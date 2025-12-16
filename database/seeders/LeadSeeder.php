@@ -1027,14 +1027,25 @@ class LeadSeeder extends Seeder
 
         // Create clients
         foreach ($clients as $clientData) {
+            // Extract pipeline data before creating lead
+            $pipelineData = [
+                'status' => $clientData['status'] ?? 'won',
+                'notes' => $clientData['notes'] ?? null,
+                'value' => $clientData['value'] ?? null,
+                'expected_close_date' => $clientData['expected_close_date'] ?? null,
+                'actual_close_date' => $clientData['actual_close_date'] ?? null,
+                'won_at' => $clientData['won_at'] ?? null,
+                'lost_reason' => $clientData['lost_reason'] ?? null,
+            ];
+
             $client = Lead::firstOrCreate(
                 ['email' => $clientData['email']],
                 $clientData
             );
 
-            // Add products to pivot table if product field exists
+            // Add products to pivot table with pipeline fields if product field exists
             if (isset($clientData['product']) && !empty($clientData['product'])) {
-                $this->attachProductsToLead($client, $clientData['product'], $client->created_at);
+                $this->attachProductsToLead($client, $clientData['product'], $client->created_at, $pipelineData);
             }
         }
 
@@ -1257,14 +1268,25 @@ class LeadSeeder extends Seeder
         ];
 
         foreach ($user3Leads as $leadData) {
+            // Extract pipeline data before creating lead
+            $pipelineData = [
+                'status' => $leadData['status'] ?? 'new_lead',
+                'notes' => $leadData['notes'] ?? null,
+                'value' => $leadData['value'] ?? null,
+                'expected_close_date' => $leadData['expected_close_date'] ?? null,
+                'actual_close_date' => $leadData['actual_close_date'] ?? null,
+                'won_at' => $leadData['won_at'] ?? null,
+                'lost_reason' => $leadData['lost_reason'] ?? null,
+            ];
+
             $lead = Lead::firstOrCreate(
                 ['email' => $leadData['email']],
                 $leadData
             );
 
-            // Add products to pivot table if product field exists
+            // Add products to pivot table with pipeline fields if product field exists
             if (isset($leadData['product']) && !empty($leadData['product'])) {
-                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at);
+                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at, $pipelineData);
             }
         }
 
@@ -1460,26 +1482,48 @@ class LeadSeeder extends Seeder
         ];
 
         foreach ($user3Leads as $leadData) {
+            // Extract pipeline data before creating lead
+            $pipelineData = [
+                'status' => $leadData['status'] ?? 'new_lead',
+                'notes' => $leadData['notes'] ?? null,
+                'value' => $leadData['value'] ?? null,
+                'expected_close_date' => $leadData['expected_close_date'] ?? null,
+                'actual_close_date' => $leadData['actual_close_date'] ?? null,
+                'won_at' => $leadData['won_at'] ?? null,
+                'lost_reason' => $leadData['lost_reason'] ?? null,
+            ];
+
             $lead = Lead::firstOrCreate(
                 ['email' => $leadData['email']],
                 $leadData
             );
 
-            // Add products to pivot table if product field exists
+            // Add products to pivot table with pipeline fields if product field exists
             if (isset($leadData['product']) && !empty($leadData['product'])) {
-                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at);
+                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at, $pipelineData);
             }
         }
 
         foreach ($user4Leads as $leadData) {
+            // Extract pipeline data before creating lead
+            $pipelineData = [
+                'status' => $leadData['status'] ?? 'new_lead',
+                'notes' => $leadData['notes'] ?? null,
+                'value' => $leadData['value'] ?? null,
+                'expected_close_date' => $leadData['expected_close_date'] ?? null,
+                'actual_close_date' => $leadData['actual_close_date'] ?? null,
+                'won_at' => $leadData['won_at'] ?? null,
+                'lost_reason' => $leadData['lost_reason'] ?? null,
+            ];
+
             $lead = Lead::firstOrCreate(
                 ['email' => $leadData['email']],
                 $leadData
             );
 
-            // Add products to pivot table if product field exists
+            // Add products to pivot table with pipeline fields if product field exists
             if (isset($leadData['product']) && !empty($leadData['product'])) {
-                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at);
+                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at, $pipelineData);
             }
         }
 
@@ -1675,14 +1719,25 @@ class LeadSeeder extends Seeder
         ];
 
         foreach ($user5Leads as $leadData) {
+            // Extract pipeline data before creating lead
+            $pipelineData = [
+                'status' => $leadData['status'] ?? 'new_lead',
+                'notes' => $leadData['notes'] ?? null,
+                'value' => $leadData['value'] ?? null,
+                'expected_close_date' => $leadData['expected_close_date'] ?? null,
+                'actual_close_date' => $leadData['actual_close_date'] ?? null,
+                'won_at' => $leadData['won_at'] ?? null,
+                'lost_reason' => $leadData['lost_reason'] ?? null,
+            ];
+
             $lead = Lead::firstOrCreate(
                 ['email' => $leadData['email']],
                 $leadData
             );
 
-            // Add products to pivot table if product field exists
+            // Add products to pivot table with pipeline fields if product field exists
             if (isset($leadData['product']) && !empty($leadData['product'])) {
-                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at);
+                $this->attachProductsToLead($lead, $leadData['product'], $lead->created_at, $pipelineData);
             }
         }
 
@@ -1691,13 +1746,15 @@ class LeadSeeder extends Seeder
 
     /**
      * Attach products to a lead by parsing product string and creating pivot table entries.
+     * Now includes pipeline fields (status, notes, value, dates) directly in the pivot table.
      *
      * @param Lead $lead
      * @param string $productString Comma-separated product names
      * @param \Carbon\Carbon|null $enrolledAt
+     * @param array $pipelineData Pipeline fields: status, notes, value, expected_close_date, actual_close_date, won_at, lost_reason
      * @return void
      */
-    private function attachProductsToLead(Lead $lead, string $productString, $enrolledAt = null): void
+    private function attachProductsToLead(Lead $lead, string $productString, $enrolledAt = null, array $pipelineData = []): void
     {
         if (empty($productString)) {
             return;
@@ -1725,15 +1782,57 @@ class LeadSeeder extends Seeder
                 ->exists();
 
             if (!$exists) {
-                // Insert into pivot table
-                DB::table('lead_product')->insert([
+                // Build pivot data with pipeline fields
+                $pivotData = [
                     'lead_id' => $lead->id,
                     'product_id' => $product ? $product->id : null,
                     'product_name' => $product ? null : $productName, // Store name if product doesn't exist
                     'enrolled_at' => $enrolledAt ?? now(),
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+
+                // Add pipeline fields from $pipelineData or fallback to lead's fields
+                $pivotData['status'] = $pipelineData['status'] ?? $lead->status ?? 'new_lead';
+
+                if (isset($pipelineData['notes']) && $pipelineData['notes'] !== null) {
+                    $pivotData['notes'] = $pipelineData['notes'];
+                } elseif ($lead->notes !== null) {
+                    $pivotData['notes'] = $lead->notes;
+                }
+
+                if (isset($pipelineData['value']) && $pipelineData['value'] !== null) {
+                    $pivotData['value'] = $pipelineData['value'];
+                } elseif ($lead->value !== null) {
+                    $pivotData['value'] = $lead->value;
+                }
+
+                if (isset($pipelineData['expected_close_date']) && $pipelineData['expected_close_date'] !== null) {
+                    $pivotData['expected_close_date'] = $pipelineData['expected_close_date'];
+                } elseif ($lead->expected_close_date !== null) {
+                    $pivotData['expected_close_date'] = $lead->expected_close_date;
+                }
+
+                if (isset($pipelineData['actual_close_date']) && $pipelineData['actual_close_date'] !== null) {
+                    $pivotData['actual_close_date'] = $pipelineData['actual_close_date'];
+                } elseif ($lead->actual_close_date !== null) {
+                    $pivotData['actual_close_date'] = $lead->actual_close_date;
+                }
+
+                if (isset($pipelineData['won_at']) && $pipelineData['won_at'] !== null) {
+                    $pivotData['won_at'] = $pipelineData['won_at'];
+                } elseif ($lead->won_at !== null) {
+                    $pivotData['won_at'] = $lead->won_at;
+                }
+
+                if (isset($pipelineData['lost_reason']) && $pipelineData['lost_reason'] !== null) {
+                    $pivotData['lost_reason'] = $pipelineData['lost_reason'];
+                } elseif ($lead->lost_reason !== null) {
+                    $pivotData['lost_reason'] = $lead->lost_reason;
+                }
+
+                // Insert into pivot table
+                DB::table('lead_product')->insert($pivotData);
             }
         }
     }

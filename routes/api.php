@@ -49,6 +49,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/{id}/status', [LeadController::class, 'updateStatus'])->name('api.leads.update-status');
         Route::patch('/{id}/mark-won', [LeadController::class, 'markAsWon'])->name('api.leads.mark-won');
         Route::patch('/{id}/mark-lost', [LeadController::class, 'markAsLost'])->name('api.leads.mark-lost');
+        Route::get('/{id}/products/{product_id}/notes', [LeadController::class, 'getNotes'])->name('api.leads.notes.get');
+        Route::post('/{id}/products/{product_id}/notes', [LeadController::class, 'addNote'])->name('api.leads.notes.add');
         Route::delete('/{id}', [LeadController::class, 'destroy'])->name('api.leads.destroy');
     });
 

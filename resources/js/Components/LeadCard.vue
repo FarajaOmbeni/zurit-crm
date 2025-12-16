@@ -6,9 +6,13 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    productId: {
+        type: Number,
+        required: true,
+    },
 });
 
-const emit = defineEmits(['drag-start', 'drag-end', 'view']);
+const emit = defineEmits(['drag-start', 'drag-end', 'view', 'notes']);
 
 const formatTimeAgo = (date) => {
     if (!date) return 'N/A';
@@ -41,6 +45,21 @@ const serviceType = computed(() => {
     return props.lead.product || 'N/A';
 });
 
+// Calculate notes count from product_pivot.notes
+const notesCount = computed(() => {
+    const notes = props.lead.product_pivot?.notes;
+    if (!notes || !notes.trim()) {
+        return 0;
+    }
+
+    // Count notes by splitting on timestamp separator pattern
+    const timestampPattern = /\n\n--- \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} ---\n/;
+    const parts = notes.split(timestampPattern);
+
+    // If no timestamps, it's a single note
+    return parts.length === 1 && parts[0].trim() ? 1 : parts.length;
+});
+
 const handleDragStart = (event) => {
     emit('drag-start', event, props.lead);
 };
@@ -51,6 +70,11 @@ const handleDragEnd = (event) => {
 
 const handleView = () => {
     emit('view', props.lead);
+};
+
+const handleNotes = (event) => {
+    event.stopPropagation(); // Prevent drag from triggering
+    emit('notes', props.lead);
 };
 </script>
 
@@ -99,13 +123,27 @@ const handleView = () => {
             <span class="font-body text-xs text-zurit-gray">Service type: {{ serviceType }}</span>
         </div>
 
-        <!-- View Full Profile Link -->
-        <button @click="handleView"
-            class="flex items-center gap-1 font-body text-sm text-zurit-purple hover:text-zurit-purple/80 transition-colors">
-            <span>View full profile</span>
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-        </button>
+        <!-- Actions Row -->
+        <div class="flex items-center justify-between gap-2">
+            <!-- Notes Button -->
+            <button @click="handleNotes"
+                class="flex items-center gap-1 rounded-lg px-2 py-1 font-body text-xs text-zurit-gray transition-colors hover:bg-gray-100 hover:text-zurit-purple"
+                :title="notesCount > 0 ? `${notesCount} note${notesCount > 1 ? 's' : ''}` : 'Add note'">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span v-if="notesCount > 0" class="font-semibold">{{ notesCount }}</span>
+            </button>
+
+            <!-- View Full Profile Link -->
+            <button @click="handleView"
+                class="flex items-center gap-1 font-body text-sm text-zurit-purple hover:text-zurit-purple/80 transition-colors">
+                <span>View full profile</span>
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
     </div>
 </template>
