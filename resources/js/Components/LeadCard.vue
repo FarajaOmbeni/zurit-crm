@@ -42,6 +42,13 @@ const phoneNumber = computed(() => {
 });
 
 const serviceType = computed(() => {
+    // Use product name from product_pivot (product-specific) or products relationship
+    if (props.lead.product_pivot?.product_name) {
+        return props.lead.product_pivot.product_name;
+    }
+    if (props.lead.products && props.lead.products.length > 0) {
+        return props.lead.products[0].name;
+    }
     return props.lead.product || 'N/A';
 });
 
@@ -88,7 +95,7 @@ const handleNotes = (event) => {
 
         <!-- Lead product -->
         <p class="font-body text-sm text-zurit-gray mb-3">
-            {{ lead.product || 'Untitled Lead' }}
+            {{ serviceType || 'Untitled Lead' }}
         </p>
 
         <!-- Contact Person -->
@@ -112,11 +119,6 @@ const handleNotes = (event) => {
         <!-- Last Contacted -->
         <div class="mb-2">
             <span class="font-body text-xs text-zurit-gray">Last contacted: {{ lastContacted }}</span>
-        </div>
-
-        <!-- Service Type -->
-        <div class="mb-3">
-            <span class="font-body text-xs text-zurit-gray">Service type: {{ serviceType }}</span>
         </div>
 
         <!-- Actions Row -->

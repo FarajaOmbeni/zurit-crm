@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue';
 import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import Alert from '@/Components/Alert.vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -190,15 +191,7 @@ watch(() => [props.lead, props.productId], () => {
             </div>
 
             <!-- Error Message -->
-            <div v-if="error" class="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
-                <div class="flex items-center gap-2">
-                    <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p class="font-body text-sm text-red-800">{{ error }}</p>
-                </div>
-            </div>
+            <Alert v-if="error" type="error" :message="error" class="mb-4" />
 
             <!-- Notes List -->
             <div class="mb-6">
@@ -279,13 +272,7 @@ watch(() => [props.lead, props.productId], () => {
             <!-- Success Notification -->
             <div v-if="notification.type === 'success'"
                 class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
-                <div
-                    class="bg-green-50 border border-green-200 rounded-lg shadow-lg px-6 py-4 flex items-center space-x-3">
-                    <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="font-body text-sm font-medium text-green-800">{{ notification.message }}</span>
-                </div>
+                <Alert type="success" :message="notification.message" class="shadow-lg pointer-events-auto" />
             </div>
         </div>
     </Modal>

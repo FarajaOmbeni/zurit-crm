@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue';
 import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import Alert from '@/Components/Alert.vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -15,39 +16,22 @@ const emit = defineEmits(['close', 'lead-added']);
 
 // Form fields
 const form = ref({
-    company_name: '',
-    company_email: '',
-    physical_location: '',
+    // Contact Person
     contact_name: '',
+    contact_position: '',
     contact_email: '',
-    phone_number: '',
+    contact_phone: '',
+    // Company Details
+    company_name: '',
+    city: '',
+    country: '',
+    sector: '',
     source: '',
-    selected_products: [], // Array of product IDs
 });
 
 const errors = ref({});
 const saving = ref(false);
 const notification = ref({ type: null, message: '' });
-
-// Fetch products for services field
-const products = ref([]);
-const loadingProducts = ref(false);
-
-const fetchProducts = async () => {
-    loadingProducts.value = true;
-    try {
-        const response = await axios.get('/api/products', {
-            params: {
-                per_page: 100,
-            },
-        });
-        products.value = response.data.data || [];
-    } catch (error) {
-        console.error('Error fetching products:', error);
-    } finally {
-        loadingProducts.value = false;
-    }
-};
 
 // Source options (common lead sources)
 const sourceOptions = [
@@ -63,14 +47,15 @@ const sourceOptions = [
 
 const resetForm = () => {
     form.value = {
-        company_name: '',
-        company_email: '',
-        physical_location: '',
         contact_name: '',
+        contact_position: '',
         contact_email: '',
-        phone_number: '',
+        contact_phone: '',
+        company_name: '',
+        city: '',
+        country: '',
+        sector: '',
         source: '',
-        selected_products: [],
     };
     errors.value = {};
     notification.value = { type: null, message: '' };
@@ -79,24 +64,14 @@ const resetForm = () => {
 const validateForm = () => {
     errors.value = {};
 
+    // Company name is required
     if (!form.value.company_name.trim()) {
         errors.value.company_name = 'Company name is required';
     }
 
-    if (!form.value.company_email.trim()) {
-        errors.value.company_email = 'Company email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.company_email)) {
-        errors.value.company_email = 'Please enter a valid email address';
-    }
-
-    if (!form.value.contact_email.trim()) {
-        errors.value.contact_email = 'Contact email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.contact_email)) {
+    // Contact email is optional, but if provided, must be valid
+    if (form.value.contact_email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.contact_email)) {
         errors.value.contact_email = 'Please enter a valid email address';
-    }
-
-    if (!form.value.phone_number.trim()) {
-        errors.value.phone_number = 'Phone number is required';
     }
 
     return Object.keys(errors.value).length === 0;
@@ -114,12 +89,15 @@ const handleSubmit = async () => {
     try {
         const response = await axios.post('/api/leads', {
             company: form.value.company_name,
-            email: form.value.contact_email,
-            phone: form.value.phone_number,
             name: form.value.contact_name,
-            city: form.value.physical_location,
+            position: form.value.contact_position,
+            email: form.value.contact_email,
+            phone: form.value.contact_phone,
+            city: form.value.city,
+            country: form.value.country,
+            sector: form.value.sector,
             source: form.value.source,
-            product_ids: form.value.selected_products, // Send selected product IDs
+            // Note: Lead will be automatically associated with all active products
             status: 'new_lead',
         });
 
@@ -156,19 +134,23 @@ const handleClose = () => {
 
 // Watch for modal show/hide
 watch(() => props.show, (isShowing) => {
-    if (isShowing) {
-        fetchProducts();
-    } else {
+    if (!isShowing) {
         resetForm();
     }
 });
 </script>
 
 <template>
+    <!-- Error Message (Top of Modal, Floating Banner) -->
+    <div v-if="errors.submit"
+        class="fixed left-1/2 top-8 z-50 flex w-full max-w-xl -translate-x-1/2 justify-center pointer-events-none">
+        <Alert type="error" :message="errors.submit" class="w-full shadow-lg pointer-events-auto" />
+    </div>
+
     <Modal :show="show" max-width="2xl" @close="handleClose">
         <div class="p-6">
             <!-- Header -->
-            <div class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
+            <div class="flex items-center justify-between border-b border-gray-200 pb-4">
                 <h2 class="font-heading text-2xl font-bold text-light-black">Add New Lead</h2>
                 <button @click="handleClose"
                     class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600">
@@ -179,132 +161,128 @@ watch(() => props.show, (isShowing) => {
                 </button>
             </div>
 
-            <!-- Error Message -->
-            <div v-if="errors.submit" class="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
-                <div class="flex items-center gap-2">
-                    <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p class="font-body text-sm text-red-800">{{ errors.submit }}</p>
-                </div>
-            </div>
-
             <!-- Form -->
             <form @submit.prevent="handleSubmit" class="space-y-6">
-                <!-- Company Name -->
-                <div>
-                    <label for="company_name" class="mb-2 block font-body text-sm font-medium text-light-black">
-                        Company Name <span class="text-red-500">*</span>
-                    </label>
-                    <input id="company_name" v-model="form.company_name" type="text"
-                        placeholder="What is the name of the company or client?"
-                        class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                        :class="{ 'border-red-500': errors.company_name }" />
-                    <p v-if="errors.company_name" class="mt-1 text-sm text-red-600">{{ errors.company_name }}</p>
-                </div>
-
-                <!-- Company Email -->
-                <div>
-                    <label for="company_email" class="mb-2 block font-body text-sm font-medium text-light-black">
-                        Company's Email Address <span class="text-red-500">*</span>
-                    </label>
-                    <input id="company_email" v-model="form.company_email" type="email"
-                        placeholder="company@example.com"
-                        class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                        :class="{ 'border-red-500': errors.company_email }" />
-                    <p v-if="errors.company_email" class="mt-1 text-sm text-red-600">{{ errors.company_email }}</p>
-                </div>
-
-                <!-- Physical Location -->
-                <div>
-                    <label for="physical_location" class="mb-2 block font-body text-sm font-medium text-light-black">
-                        Physical Location
-                    </label>
-                    <input id="physical_location" v-model="form.physical_location" type="text"
-                        placeholder="City, Country"
-                        class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
-                </div>
-
-                <!-- Contact Person Section -->
-                <div class="border-t border-gray-200 pt-4">
-                    <label class="mb-4 block font-body text-sm font-medium text-light-black">
-                        <span class="text-red-500">*</span> Contact Person
+                <!-- Company Details Section -->
+                <div class="pt-6">
+                    <label class="mb-4 block font-body text-md font-medium text-light-black">
+                        Company Details
                     </label>
 
-                    <!-- Contact Name -->
+                    <!-- Company Name -->
                     <div class="mb-4">
-                        <label for="contact_name" class="mb-2 block font-body text-sm font-medium text-light-black">
-                            Name
+                        <label for="company_name" class="mb-2 block font-body text-sm font-medium text-light-black">
+                            Company Name <span class="text-red-500">*</span>
                         </label>
-                        <input id="contact_name" v-model="form.contact_name" type="text"
-                            placeholder="What is the name of the contact person?"
+                        <input id="company_name" v-model="form.company_name" type="text" placeholder="Company name"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                            :class="{ 'border-red-500': errors.company_name }" />
+                        <p v-if="errors.company_name" class="mt-1 text-sm text-red-600">{{ errors.company_name }}</p>
+                    </div>
+
+                    <!-- Country -->
+                    <div class="mb-4">
+                        <label for="country" class="mb-2 block font-body text-sm font-medium text-light-black">
+                            Country
+                        </label>
+                        <input id="country" v-model="form.country" type="text" placeholder="Country"
                             class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
                     </div>
 
-                    <!-- Contact Email -->
+                    <!-- City -->
                     <div class="mb-4">
-                        <label for="contact_email" class="mb-2 block font-body text-sm font-medium text-light-black">
-                            Email <span class="text-red-500">*</span>
+                        <label for="city" class="mb-2 block font-body text-sm font-medium text-light-black">
+                            City
                         </label>
-                        <input id="contact_email" v-model="form.contact_email" type="email"
-                            placeholder="contact@example.com"
-                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                            :class="{ 'border-red-500': errors.contact_email }" />
-                        <p v-if="errors.contact_email" class="mt-1 text-sm text-red-600">{{ errors.contact_email }}</p>
+                        <input id="city" v-model="form.city" type="text" placeholder="City"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
                     </div>
 
-                    <!-- Phone Number -->
+                    <!-- Sector -->
+                    <div class="mb-4">
+                        <label for="sector" class="mb-2 block font-body text-sm font-medium text-light-black">
+                            Sector
+                        </label>
+                        <input id="sector" v-model="form.sector" type="text" placeholder="Sector"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
+                    </div>
+
+                    <!-- Source -->
                     <div>
-                        <label for="phone_number" class="mb-2 block font-body text-sm font-medium text-light-black">
-                            Phone Number <span class="text-red-500">*</span>
+                        <label for="source" class="mb-2 block font-body text-sm font-medium text-light-black">
+                            Source
                         </label>
-                        <input id="phone_number" v-model="form.phone_number" type="tel" placeholder="+254 700 000 000"
-                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                            :class="{ 'border-red-500': errors.phone_number }" />
-                        <p v-if="errors.phone_number" class="mt-1 text-sm text-red-600">{{ errors.phone_number }}</p>
+                        <div class="relative">
+                            <select id="source" v-model="form.source"
+                                class="block w-full appearance-none mb-8 rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10 font-body text-sm text-light-black focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple">
+                                <option value="">Select source</option>
+                                <option v-for="source in sourceOptions" :key="source" :value="source">
+                                    {{ source }}
+                                </option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <svg class="h-5 w-5 text-zurit-purple" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Services Field -->
-                <div>
-                    <label class="mb-2 block font-body text-sm font-medium text-light-black">
-                        Services
-                    </label>
-                    <div v-if="loadingProducts" class="text-sm text-zurit-gray">Loading products...</div>
-                    <div v-else class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
-                        <label v-for="product in products" :key="product.id"
-                            class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                            <input type="checkbox" :value="product.id" v-model="form.selected_products"
-                                class="rounded border-gray-300 text-zurit-purple focus:ring-zurit-purple" />
-                            <span class="font-body text-sm text-light-black">{{ product.name }}</span>
-                            <span v-if="product.category" class="font-body text-xs text-zurit-gray">({{ product.category
-                            }})</span>
+                    <!-- Contact Person Section -->
+                    <div>
+                        <label class="mb-4 block font-body text-sm font-medium text-light-black">
+                            Contact Person
                         </label>
-                        <p v-if="products.length === 0" class="text-sm text-zurit-gray">No products available</p>
-                    </div>
-                    <p class="mt-1 text-xs text-zurit-gray">Select the services this lead is interested in</p>
-                </div>
 
-                <!-- Source of Lead -->
-                <div>
-                    <label for="source" class="mb-2 block font-body text-sm font-medium text-light-black">
-                        Source of Lead
-                    </label>
-                    <div class="relative">
-                        <select id="source" v-model="form.source"
-                            class="block w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10 font-body text-sm text-light-black focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple">
-                            <option value="">What is the source of the lead?</option>
-                            <option v-for="source in sourceOptions" :key="source" :value="source">
-                                {{ source }}
-                            </option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                            <svg class="h-5 w-5 text-zurit-purple" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                        <!-- Name -->
+                        <div class="mb-4">
+                            <label for="contact_name" class="mb-2 block font-body text-sm font-medium text-light-black">
+                                Name
+                            </label>
+                            <input id="contact_name" v-model="form.contact_name" type="text"
+                                placeholder="Contact person's name"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
+                        </div>
+
+                        <!-- Position -->
+                        <div class="mb-4">
+                            <label for="contact_position"
+                                class="mb-2 block font-body text-sm font-medium text-light-black">
+                                Position
+                            </label>
+                            <input id="contact_position" v-model="form.contact_position" type="text"
+                                placeholder="Contact person's position"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label for="contact_email"
+                                class="mb-2 block font-body text-sm font-medium text-light-black">
+                                Email
+                            </label>
+                            <input id="contact_email" v-model="form.contact_email" type="email"
+                                placeholder="contact@example.com"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                                :class="{ 'border-red-500': errors.contact_email }" />
+                            <p v-if="errors.contact_email" class="mt-1 text-sm text-red-600">{{ errors.contact_email }}
+                            </p>
+                        </div>
+
+                        <!-- Phone -->
+                        <div>
+                            <label for="contact_phone"
+                                class="mb-2 block font-body text-sm font-medium text-light-black">
+                                Phone
+                            </label>
+                            <input id="contact_phone" v-model="form.contact_phone" type="tel"
+                                placeholder="+254 700 000 000"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                                :class="{ 'border-red-500': errors.contact_phone }" />
+                            <p v-if="errors.contact_phone" class="mt-1 text-sm text-red-600">{{ errors.contact_phone }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -337,15 +315,8 @@ watch(() => props.show, (isShowing) => {
             </form>
 
             <!-- Success Notification -->
-            <div v-if="notification.type === 'success'"
-                class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
-                <div
-                    class="bg-green-50 border border-green-200 rounded-lg shadow-lg px-6 py-4 flex items-center space-x-3">
-                    <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="font-body text-sm font-medium text-green-800">{{ notification.message }}</span>
-                </div>
+            <div v-if="notification.type === 'success'" class="mt-6">
+                <Alert type="success" :message="notification.message" />
             </div>
         </div>
     </Modal>

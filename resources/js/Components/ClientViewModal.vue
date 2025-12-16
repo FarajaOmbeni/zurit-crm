@@ -4,6 +4,7 @@ import TextInput from '@/Components/TextInput.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import Alert from '@/Components/Alert.vue';
 import { ref, watch } from 'vue';
 
 const props = defineProps({
@@ -251,23 +252,12 @@ const submit = async () => {
                 </div>
 
                 <!-- Success Message -->
-                <div v-if="notification.type === 'success'"
-                    class="bg-green-50 border border-green-200 rounded-lg shadow-lg px-6 py-4 flex items-center space-x-3">
-                    <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="font-body text-sm font-medium text-green-800">{{ notification.message }}</span>
-                </div>
+                <Alert v-if="notification.type === 'success'" type="success" :message="notification.message"
+                    class="shadow-lg" />
 
                 <!-- Error Message -->
-                <div v-if="notification.type === 'error'"
-                    class="bg-red-50 border border-red-200 rounded-lg shadow-lg px-6 py-4 flex items-center space-x-3">
-                    <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <span class="font-body text-sm font-medium text-red-800">{{ notification.message }}</span>
-                </div>
+                <Alert v-if="notification.type === 'error'" type="error" :message="notification.message"
+                    class="shadow-lg" />
             </div>
 
             <!-- Header -->
@@ -428,7 +418,7 @@ const submit = async () => {
                                 <p class="font-body text-xs text-zurit-gray mb-1">Last Contact</p>
                                 <p class="font-body text-sm font-medium text-light-black">{{
                                     formatDate(client.updated_at)
-                                    }}</p>
+                                }}</p>
                             </div>
                             <div>
                                 <p class="font-body text-xs text-zurit-gray mb-1">Next Session</p>
@@ -452,9 +442,7 @@ const submit = async () => {
 
                 <form @submit.prevent="submit" class="space-y-4">
                     <!-- General Error -->
-                    <div v-if="errors.general" class="rounded-lg bg-red-50 border border-red-200 p-4">
-                        <p class="font-body text-sm text-red-800">{{ errors.general }}</p>
-                    </div>
+                    <Alert v-if="errors.general" type="error" :message="errors.general" />
 
                     <!-- Name -->
                     <div>

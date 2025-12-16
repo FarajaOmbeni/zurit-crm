@@ -330,14 +330,14 @@ onMounted(() => {
                     </button>
 
                     <!-- Drag & Drop Button -->
-                    <button v-else @click="handleAddLead(stage.slug)"
-                        class="w-full rounded-lg border-2 border-dashed border-gray-300 bg-white p-4 text-center font-body text-sm text-zurit-gray transition-colors hover:border-zurit-purple hover:text-zurit-purple">
+                    <button v-else
+                        class="w-full cursor-move rounded-lg border-2 border-dashed border-gray-300 bg-white p-4 text-center font-body text-sm text-zurit-gray transition-colors hover:border-zurit-purple hover:text-zurit-purple">
                         <div class="flex items-center justify-center gap-2">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4" />
                             </svg>
-                            <span>+ Drag & Drop a Company</span>
+                            <span>Drag & Drop a Company</span>
                         </div>
                     </button>
                 </div>

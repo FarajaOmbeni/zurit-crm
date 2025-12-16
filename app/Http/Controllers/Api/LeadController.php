@@ -61,10 +61,11 @@ class LeadController extends Controller
             'name' => ['nullable', 'string', 'max:255'],
             'position' => ['nullable', 'string', 'max:255'],
             'company' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'], // Contact email is required
-            'phone' => ['required', 'string', 'max:255'], // Phone number is required
+            'email' => ['nullable', 'email', 'max:255'], // Contact email is optional
+            'phone' => ['nullable', 'string', 'max:255'], // Phone number is optional
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
+            'sector' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', Rule::in(['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won', 'lost'])],
             'value' => ['nullable', 'numeric', 'min:0'],
@@ -135,6 +136,7 @@ class LeadController extends Controller
             'phone' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
+            'sector' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],
             'status' => ['sometimes', Rule::in(['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won', 'lost'])],
             'value' => ['nullable', 'numeric', 'min:0'],
@@ -347,6 +349,7 @@ class LeadController extends Controller
                     'won_at' => $formatDateTime($productPivot->pivot->won_at),
                     'lost_reason' => $productPivot->pivot->lost_reason,
                     'enrolled_at' => $formatDateTime($productPivot->pivot->enrolled_at),
+                    'product_name' => $productPivot->name, // Add product name to pivot data
                 ];
                 // Use pivot status for grouping
                 $leadArray['pivot_status'] = $productPivot->pivot->status;
