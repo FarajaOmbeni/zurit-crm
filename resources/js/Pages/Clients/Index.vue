@@ -88,9 +88,45 @@ onMounted(() => {
     fetchClients();
 });
 
-const handleExport = () => {
-    // Handle CSV export
-    console.log('Export CSV clicked');
+const handleExport = async () => {
+    try {
+        // Call the export endpoint
+        const response = await window.axios.get('/api/leads/export', {
+            responseType: 'blob', // Important: handle binary data
+        });
+
+        // Create a blob from the response
+        const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+        
+        // Create a download link
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        // Generate filename with timestamp (matching backend format: Y-m-d_His)
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const filename = `leads_export_${year}-${month}-${day}_${hours}${minutes}${seconds}.csv`;
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the URL object
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error exporting leads:', error);
+        alert('Failed to export leads. Please try again.');
+    }
 };
 
 const handleAddLead = () => {

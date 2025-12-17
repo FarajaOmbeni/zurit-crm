@@ -540,6 +540,72 @@ class LeadController extends Controller
     }
 
     /**
+     * Export all leads to CSV.
+     */
+    public function export(Request $request)
+    {
+        $user = Auth::user();
+        $query = $this->getAuthorizedLeadsQuery($user);
+
+        // Exclude clients by default (export only leads, not clients)
+        if (!$request->boolean('include_clients')) {
+            $query->where('is_client', false);
+        }
+
+        // Get all leads (no pagination for export)
+        $leads = $query->with(['addedBy'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Define CSV headers
+        $headers = [
+            'Name',
+            'Position',
+            'Company',
+            'Email',
+            'Phone',
+            'City',
+            'Country',
+            'Source',
+            'Sector',
+        ];
+
+        // Generate CSV content
+        $csvData = [];
+        $csvData[] = implode(',', array_map(function ($header) {
+            return '"' . str_replace('"', '""', $header) . '"';
+        }, $headers));
+
+        foreach ($leads as $lead) {
+            $row = [
+                $lead->name ?? '',
+                $lead->position ?? '',
+                $lead->company ?? '',
+                $lead->email ?? '',
+                $lead->phone ?? '',
+                $lead->city ?? '',
+                $lead->country ?? '',
+                $lead->source ?? '',
+                $lead->sector ?? '',
+            ];
+
+            $csvData[] = implode(',', array_map(function ($field) {
+                return '"' . str_replace('"', '""', $field) . '"';
+            }, $row));
+        }
+
+        $csvContent = implode("\n", $csvData);
+
+        // Generate filename with timestamp
+        $filename = 'leads_export_' . now()->format('Y-m-d_His') . '.csv';
+
+        return response($csvContent)
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->header('Content-Transfer-Encoding', 'binary');
+    }
+
+    /**
      * Get authorized leads query based on user role.
      */
     protected function getAuthorizedLeadsQuery($user)
