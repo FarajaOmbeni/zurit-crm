@@ -10,7 +10,6 @@ const user = computed(() => page.props.auth?.user);
 const isAdmin = computed(() => user.value?.role === 'admin');
 
 const navigation = [
-    { name: 'Lead Profile', route: 'leads.index' },
     { name: 'Client Database', route: 'clients.index' },
     { name: 'Reports', route: 'reports.index' },
     { name: 'Tasks', route: 'tasks.index' },
