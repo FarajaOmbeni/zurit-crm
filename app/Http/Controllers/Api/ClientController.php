@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\Auth;
 class ClientController extends Controller
 {
     /**
-     * Display a listing of clients.
+     * Display a listing of clients and leads.
      */
     public function index(Request $request): JsonResponse
     {
         $user = Auth::user();
-        $query = $this->getAuthorizedClientsQuery($user);
+        $query = $this->getAuthorizedLeadsQuery($user);
 
         // Apply filters
         if ($request->has('source')) {
@@ -42,11 +42,26 @@ class ClientController extends Controller
                 in_array($sortBy, ['company', 'name', 'email', 'created_at', 'won_at']) &&
                 in_array($sortOrder, ['asc', 'desc'])
             ) {
-                $query->orderBy($sortBy, $sortOrder);
+                // Use case-insensitive sorting for text fields
+                if (in_array($sortBy, ['company', 'name', 'email'])) {
+                    // Case-insensitive sort with NULL handling
+                    // In MySQL, NULL values come first in ASC, last in DESC
+                    // We'll use COALESCE to handle NULLs consistently
+                    if ($sortOrder === 'asc') {
+                        $query->orderByRaw("COALESCE(LOWER({$sortBy}), '') {$sortOrder}");
+                    } else {
+                        $query->orderByRaw("COALESCE(LOWER({$sortBy}), 'zzzzzzzzzz') {$sortOrder}");
+                    }
+                } else {
+                    $query->orderBy($sortBy, $sortOrder);
+                }
+
+                // Add secondary sort by ID for consistent ordering when values are equal
+                $query->orderBy('id', $sortOrder);
             }
         } else {
-            // Default sorting by won_at desc
-            $query->orderBy('won_at', 'desc');
+            // Default sorting by created_at desc (newest first)
+            $query->orderBy('created_at', 'desc');
         }
 
         // Pagination
@@ -101,11 +116,11 @@ class ClientController extends Controller
     }
 
     /**
-     * Get authorized clients query based on user role.
+     * Get authorized leads query based on user role (returns all leads, not just clients).
      */
-    protected function getAuthorizedClientsQuery($user)
+    protected function getAuthorizedLeadsQuery($user)
     {
-        $query = Lead::where('is_client', true);
+        $query = Lead::query();
 
         if ($user->isAdmin()) {
             return $query;

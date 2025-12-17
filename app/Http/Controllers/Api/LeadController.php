@@ -8,6 +8,7 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class LeadController extends Controller
@@ -537,6 +538,127 @@ class LeadController extends Controller
             'closedThisMonth' => $closedThisMonth,
             'totalThisMonth' => number_format($totalThisMonth, 0, '.', ','),
         ]);
+    }
+
+    /**
+     * Import leads from CSV data.
+     */
+    public function import(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'leads' => ['required', 'array'],
+            'leads.*.name' => ['nullable', 'string', 'max:255'],
+            'leads.*.position' => ['nullable', 'string', 'max:255'],
+            'leads.*.company' => ['required', 'string', 'max:255'],
+            'leads.*.email' => ['nullable', 'email', 'max:255'],
+            'leads.*.phone' => ['nullable', 'string', 'max:255'],
+            'leads.*.city' => ['nullable', 'string', 'max:255'],
+            'leads.*.country' => ['nullable', 'string', 'max:255'],
+            'leads.*.source' => ['nullable', 'string', 'max:255'],
+            'leads.*.sector' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $user = Auth::user();
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $duplicates = [];
+
+        foreach ($validated['leads'] as $index => $leadData) {
+            try {
+                // Check for duplicates by email or phone
+                $email = $leadData['email'] ?? null;
+                $phone = $leadData['phone'] ?? null;
+                $duplicateFound = false;
+                $duplicateReason = '';
+
+                // Check for duplicate email
+                if ($email) {
+                    $existingByEmail = Lead::where('email', $email)->first();
+                    if ($existingByEmail) {
+                        $duplicateFound = true;
+                        $duplicateReason = "Email already exists: {$email}";
+                    }
+                }
+
+                // Check for duplicate phone (if email check didn't find a duplicate)
+                if (!$duplicateFound && $phone) {
+                    $existingByPhone = Lead::where('phone', $phone)->first();
+                    if ($existingByPhone) {
+                        $duplicateFound = true;
+                        $duplicateReason = "Phone already exists: {$phone}";
+                    }
+                }
+
+                // Skip if duplicate found
+                if ($duplicateFound) {
+                    $skipped++;
+                    $duplicates[] = [
+                        'row' => $index + 2, // +2 because index is 0-based and we skip header row
+                        'company' => $leadData['company'] ?? 'Unknown',
+                        'email' => $email,
+                        'phone' => $phone,
+                        'reason' => $duplicateReason,
+                    ];
+                    continue;
+                }
+
+                // Create lead
+                $lead = Lead::create([
+                    'name' => $leadData['name'] ?? null,
+                    'position' => $leadData['position'] ?? null,
+                    'company' => $leadData['company'],
+                    'email' => $email,
+                    'phone' => $phone,
+                    'city' => $leadData['city'] ?? null,
+                    'country' => $leadData['country'] ?? null,
+                    'source' => $leadData['source'] ?? null,
+                    'sector' => $leadData['sector'] ?? null,
+                    'status' => 'new_lead',
+                    'added_by' => $user->id,
+                    'is_client' => false,
+                ]);
+
+                // Associate with all active products
+                $products = Product::where('is_active', true)->pluck('id');
+                if ($products->isEmpty()) {
+                    // Log warning if no active products found
+                    Log::warning('No active products found when importing lead', ['lead_id' => $lead->id]);
+                } else {
+                    foreach ($products as $productId) {
+                        $lead->products()->attach($productId, [
+                            'status' => 'new_lead',
+                            'enrolled_at' => now(),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+
+                $imported++;
+            } catch (\Exception $e) {
+                Log::error('Error importing lead', [
+                    'row' => $index + 2,
+                    'company' => $leadData['company'] ?? 'Unknown',
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                $errors[] = [
+                    'row' => $index + 2, // +2 because index is 0-based and we skip header row
+                    'company' => $leadData['company'] ?? 'Unknown',
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return response()->json([
+            'message' => 'Import completed',
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'total' => count($validated['leads']),
+            'duplicates' => $duplicates,
+            'errors' => $errors,
+        ], 200);
     }
 
     /**

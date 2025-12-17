@@ -157,10 +157,10 @@ const handleEdit = (client) => {
         <div v-if="!loading || showEmptyState" class="mb-4">
             <p class="font-body text-sm text-zurit-gray">
                 <template v-if="total > 0">
-                    Showing {{ getPageRange().start }} to {{ getPageRange().end }} of {{ total }} clients
+                    Showing {{ getPageRange().start }} to {{ getPageRange().end }} of {{ total }} leads
                 </template>
                 <template v-else>
-                    No clients found
+                    No leads found
                 </template>
             </p>
         </div>
@@ -191,6 +191,10 @@ const handleEdit = (client) => {
                                 <th
                                     class="px-6 py-4 text-left font-heading text-xs font-medium uppercase tracking-wider text-light-black">
                                     CLIENT
+                                </th>
+                                <th
+                                    class="px-6 py-4 text-left font-heading text-xs font-medium uppercase tracking-wider text-light-black">
+                                    TYPE
                                 </th>
                                 <th
                                     class="px-6 py-4 text-left font-heading text-xs font-medium uppercase tracking-wider text-light-black">
@@ -234,6 +238,18 @@ const handleEdit = (client) => {
                                             </p>
                                         </div>
                                     </div>
+                                </td>
+
+                                <!-- TYPE Column -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span :class="[
+                                        'inline-flex rounded-full px-3 py-1 text-xs font-semibold font-body',
+                                        client.is_client 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-blue-100 text-blue-800'
+                                    ]">
+                                        {{ client.is_client ? 'Client' : 'Lead' }}
+                                    </span>
                                 </td>
 
                                 <!-- SERVICES Column -->
@@ -316,7 +332,7 @@ const handleEdit = (client) => {
 
                 <!-- Empty State -->
                 <div v-if="clients.length === 0 && showEmptyState" class="p-12 text-center">
-                    <p class="font-body text-lg text-zurit-gray">No clients found.</p>
+                    <p class="font-body text-lg text-zurit-gray">No leads found.</p>
                 </div>
 
                 <!-- Pagination -->

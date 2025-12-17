@@ -3,6 +3,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ClientsHeader from '@/Components/ClientsHeader.vue';
 import ClientList from '@/Components/ClientList.vue';
 import ClientViewModal from '@/Components/ClientViewModal.vue';
+import CsvImportModal from '@/Components/CsvImportModal.vue';
+import Alert from '@/Components/Alert.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 
@@ -18,6 +20,10 @@ const sortOrder = ref(null);
 const loading = ref(false);
 const showEmptyState = ref(false);
 const showModal = ref(false);
+const showImportModal = ref(false);
+const importing = ref(false);
+const showSuccessAlert = ref(false);
+const successMessage = ref('');
 const selectedClient = ref(null);
 const startInEditMode = ref(false);
 let loadingTimeout = null;
@@ -130,8 +136,132 @@ const handleExport = async () => {
 };
 
 const handleAddLead = () => {
-    // Handle add lead action
-    console.log('Add Lead clicked');
+    // Show import modal
+    showImportModal.value = true;
+};
+
+const handleImportConfirm = async (importData) => {
+    importing.value = true;
+    showSuccessAlert.value = false;
+
+    try {
+        // Parse CSV content
+        const lines = importData.content.split('\n').filter(line => line.trim() !== '');
+        if (lines.length < 2) {
+            alert('CSV file must have at least a header row and one data row.');
+            importing.value = false;
+            return;
+        }
+
+        // Parse CSV lines
+        const parseCSVLine = (line) => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        };
+
+        // Get headers
+        const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+        
+        // Map headers to expected field names (case-insensitive)
+        const fieldMapping = {
+            'name': 'name',
+            'position': 'position',
+            'company': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'city': 'city',
+            'country': 'country',
+            'source': 'source',
+            'sector': 'sector',
+        };
+
+        // Normalize header names
+        const normalizedHeaders = headers.map(h => {
+            const lower = h.toLowerCase().trim();
+            return fieldMapping[lower] || h;
+        });
+
+        // Parse data rows
+        const leads = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            const lead = {};
+            
+            normalizedHeaders.forEach((field, index) => {
+                if (fieldMapping[field]) {
+                    lead[field] = values[index] ? values[index].replace(/^"|"$/g, '').trim() : '';
+                }
+            });
+
+            // Only add if company is present (required field)
+            if (lead.company) {
+                leads.push(lead);
+            }
+        }
+
+        if (leads.length === 0) {
+            alert('No valid leads found in the CSV file. Please ensure the file has data rows with at least a company name.');
+            importing.value = false;
+            return;
+        }
+
+        // Send to backend
+        const response = await window.axios.post('/api/leads/import', {
+            leads: leads,
+        });
+
+        // Close modal and refresh client list
+        showImportModal.value = false;
+        importing.value = false;
+        fetchClients(searchTerm.value, 1);
+        
+        // Show success alert with import details
+        let message = `Successfully imported ${response.data.imported} lead(s).`;
+        if (response.data.skipped > 0) {
+            message += ` ${response.data.skipped} duplicate(s) skipped.`;
+        }
+        if (response.data.errors && response.data.errors.length > 0) {
+            message += ` ${response.data.errors.length} error(s) occurred.`;
+        }
+        successMessage.value = message;
+        showSuccessAlert.value = true;
+
+        // Auto-hide alert after 5 seconds
+        setTimeout(() => {
+            showSuccessAlert.value = false;
+        }, 5000);
+    } catch (error) {
+        console.error('Error importing leads:', error);
+        importing.value = false;
+        const errorMessage = error.response?.data?.message || 'Failed to import leads. Please try again.';
+        alert(errorMessage);
+    }
+};
+
+const handleImportClose = () => {
+    showImportModal.value = false;
 };
 
 const handleSearch = (term) => {
@@ -240,6 +370,14 @@ const closeModal = () => {
                 <!-- Client View Modal -->
                 <ClientViewModal :show="showModal" :client="selectedClient" :initial-edit-mode="startInEditMode"
                     @close="closeModal" @edit="handleEdit" @updated="handleClientUpdated" />
+
+                <!-- CSV Import Modal -->
+                <CsvImportModal :show="showImportModal" :importing="importing" @close="handleImportClose" @confirm="handleImportConfirm" />
+
+                <!-- Success Alert -->
+                <div class="fixed top-4 right-4 z-50 max-w-md">
+                    <Alert v-if="showSuccessAlert" type="success" :message="successMessage" />
+                </div>
             </div>
         </div>
     </AuthenticatedLayout>

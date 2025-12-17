@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('leads')->group(function () {
         Route::get('/', [LeadController::class, 'index'])->name('api.leads.index');
         Route::post('/', [LeadController::class, 'store'])->name('api.leads.store');
+        Route::post('/import', [LeadController::class, 'import'])->name('api.leads.import');
         Route::get('/export', [LeadController::class, 'export'])->name('api.leads.export');
         Route::get('/kanban', [LeadController::class, 'kanban'])->name('api.leads.kanban');
         Route::get('/pipeline-stats', [LeadController::class, 'pipelineStats'])->name('api.leads.pipeline-stats');
