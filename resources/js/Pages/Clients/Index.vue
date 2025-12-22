@@ -24,6 +24,7 @@ const showImportModal = ref(false);
 const importing = ref(false);
 const showSuccessAlert = ref(false);
 const successMessage = ref('');
+const importDuplicates = ref([]);
 const selectedClient = ref(null);
 const startInEditMode = ref(false);
 let loadingTimeout = null;
@@ -254,7 +255,7 @@ const handleImportConfirm = async (importData) => {
         showImportModal.value = false;
         importing.value = false;
         fetchClients(searchTerm.value, 1);
-        
+
         // Show success alert with import details
         let message = `Successfully imported ${response.data.imported} lead(s).`;
         if (response.data.skipped > 0) {
@@ -264,12 +265,15 @@ const handleImportConfirm = async (importData) => {
             message += ` ${response.data.errors.length} error(s) occurred.`;
         }
         successMessage.value = message;
+        importDuplicates.value = response.data.duplicates || [];
         showSuccessAlert.value = true;
 
-        // Auto-hide alert after 5 seconds
+        // Auto-hide alert after 10 seconds (longer if there are duplicates to read)
+        const hideDelay = importDuplicates.value.length > 0 ? 15000 : 5000;
         setTimeout(() => {
             showSuccessAlert.value = false;
-        }, 5000);
+            importDuplicates.value = [];
+        }, hideDelay);
     } catch (error) {
         console.error('Error importing leads:', error);
         importing.value = false;
@@ -392,9 +396,41 @@ const closeModal = () => {
                 <!-- CSV Import Modal -->
                 <CsvImportModal :show="showImportModal" :importing="importing" @close="handleImportClose" @confirm="handleImportConfirm" />
 
-                <!-- Success Alert -->
-                <div class="fixed top-4 right-4 z-50 max-w-md">
-                    <Alert v-if="showSuccessAlert" type="success" :message="successMessage" />
+                <!-- Import Results Alert -->
+                <div v-if="showSuccessAlert" class="fixed top-4 right-4 z-50 max-w-lg">
+                    <div class="rounded-lg border bg-white shadow-lg overflow-hidden">
+                        <!-- Success Header -->
+                        <div class="bg-green-50 border-b border-green-200 px-4 py-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p class="font-body text-sm font-medium text-green-800">{{ successMessage }}</p>
+                                </div>
+                                <button @click="showSuccessAlert = false; importDuplicates = [];" class="text-green-600 hover:text-green-800">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Duplicates List -->
+                        <div v-if="importDuplicates.length > 0" class="max-h-64 overflow-y-auto">
+                            <div class="px-4 py-2 bg-amber-50 border-b border-amber-200">
+                                <p class="font-body text-xs font-medium text-amber-800">Skipped duplicates:</p>
+                            </div>
+                            <ul class="divide-y divide-gray-100">
+                                <li v-for="(dup, index) in importDuplicates" :key="index" class="px-4 py-2 hover:bg-gray-50">
+                                    <p class="font-body text-sm text-gray-900 font-medium">{{ dup.company }}</p>
+                                    <p class="font-body text-xs text-gray-600">
+                                        Row {{ dup.row }}: {{ dup.reason }}
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
