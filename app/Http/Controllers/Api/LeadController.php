@@ -228,9 +228,29 @@ class LeadController extends Controller
             ], 500);
         }
 
-        // If status is 'won', optionally mark lead as client (if not already)
-        // Note: This is product-specific, so we might not want to auto-convert
-        // But we'll set won_at timestamp in the pivot table (already done by updateStatusForProduct)
+        // Also update the main lead status to keep them in sync
+        // Manually handle is_client conversion for 'won' status (instead of relying on observer)
+        try {
+            $lead->status = $status;
+
+            if ($status === 'won' && !$lead->is_client) {
+                $lead->is_client = true;
+                if (is_null($lead->won_at)) {
+                    $lead->won_at = now();
+                }
+            }
+
+            $lead->save();
+        } catch (\Exception $e) {
+            Log::error('Error updating lead status', [
+                'lead_id' => $lead->id,
+                'status' => $status,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'message' => 'Failed to update lead status: ' . $e->getMessage(),
+            ], 500);
+        }
 
         // Reload lead with product pivot data
         $lead->load(['addedBy', 'products' => function ($query) use ($productId) {
@@ -243,13 +263,26 @@ class LeadController extends Controller
 
         // Add product pivot data to response
         if ($productPivot) {
+            // Helper to safely format dates (handles both string and Carbon instances)
+            $formatDate = function ($date) {
+                if (!$date) return null;
+                if (is_string($date)) return $date;
+                return $date->format('Y-m-d');
+            };
+
+            $formatDateTime = function ($dateTime) {
+                if (!$dateTime) return null;
+                if (is_string($dateTime)) return $dateTime;
+                return $dateTime->toIso8601String();
+            };
+
             $leadArray['product_pivot'] = [
                 'status' => $productPivot->pivot->status,
                 'notes' => $productPivot->pivot->notes,
                 'value' => $productPivot->pivot->value,
-                'expected_close_date' => $productPivot->pivot->expected_close_date?->format('Y-m-d'),
-                'actual_close_date' => $productPivot->pivot->actual_close_date?->format('Y-m-d'),
-                'won_at' => $productPivot->pivot->won_at?->toIso8601String(),
+                'expected_close_date' => $formatDate($productPivot->pivot->expected_close_date),
+                'actual_close_date' => $formatDate($productPivot->pivot->actual_close_date),
+                'won_at' => $formatDateTime($productPivot->pivot->won_at),
                 'lost_reason' => $productPivot->pivot->lost_reason,
             ];
         }
