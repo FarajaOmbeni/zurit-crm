@@ -70,10 +70,8 @@ class ReportMail extends Mailable
             'highlights' => $highlights,
             'challenges' => $challenges,
             'outreachSummary' => $data['outreach_summary'] ?? [
-                'schemes_contacted' => 0,
-                'schemes_newly_engaged' => 0,
-                'follow_ups_conducted' => 0,
-                'active_pipeline' => 0,
+                'total_contacted' => 0,
+                'contacted_leads' => [],
             ],
             'wonDeals' => $data['won_deals'] ?? [],
             'newLeads' => $data['new_leads'] ?? [],

@@ -167,23 +167,19 @@
     <!-- Outreach Summary -->
     <div class="section">
         <div class="section-title">Outreach Summary</div>
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-label">Schemes Contacted</div>
-                <div class="stat-value">{{ $outreachSummary['schemes_contacted'] ?? 0 }}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Newly Engaged</div>
-                <div class="stat-value">{{ $outreachSummary['schemes_newly_engaged'] ?? 0 }}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Follow-ups</div>
-                <div class="stat-value">{{ $outreachSummary['follow_ups_conducted'] ?? 0 }}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Active Pipeline</div>
-                <div class="stat-value">{{ $outreachSummary['active_pipeline'] ?? 0 }}</div>
-            </div>
+        <div class="text-content">
+            <p style="font-size: 14px; font-weight: bold; margin-bottom: 10px;">
+                Leads Contacted: <span style="color: #7639C2;">{{ $outreachSummary['total_contacted'] ?? 0 }}</span>
+            </p>
+            @if(isset($outreachSummary['contacted_leads']) && count($outreachSummary['contacted_leads']) > 0)
+                <ul style="list-style-type: none; padding-left: 15px; margin-top: 10px;">
+                    @foreach($outreachSummary['contacted_leads'] as $lead)
+                        <li style="margin-bottom: 5px;">- {{ $lead['display_name'] }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <p style="font-style: italic; color: #6B6B6B; margin-top: 10px;">No leads contacted</p>
+            @endif
         </div>
     </div>
 

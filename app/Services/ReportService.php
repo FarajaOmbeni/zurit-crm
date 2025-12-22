@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Activity;
 use App\Models\Lead;
 use App\Models\Report;
 use App\Models\Task;
@@ -60,9 +59,9 @@ class ReportService
 
         return [
             'report' => $report,
+            'salesperson_name' => $user->name,
+            'date' => $date,
             'data' => [
-                'salesperson_name' => $user->name,
-                'date' => $date,
                 'outreach_summary' => $outreachSummary,
                 'schemes_engagement' => $schemesEngagement,
                 'new_leads' => $newLeads,
@@ -111,10 +110,10 @@ class ReportService
 
         return [
             'report' => $report,
+            'salesperson_name' => $user->name,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
             'data' => [
-                'salesperson_name' => $user->name,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
                 'outreach_summary' => $outreachSummary,
                 'schemes_engagement' => $schemesEngagement,
                 'new_leads' => $newLeads,
@@ -129,67 +128,83 @@ class ReportService
 
     /**
      * Calculate outreach summary.
+     * Returns total leads contacted and list of company/person names.
      */
     public function calculateOutreachSummary(User $user, Carbon $startDate, Carbon $endDate): array
     {
         $leadIds = $this->getUserLeadIds($user);
 
-        // Number of Pension Schemes Contacted Today (calls or emails)
-        $schemesContacted = Activity::whereIn('lead_id', $leadIds)
-            ->whereBetween('activity_date', [$startDate, $endDate])
-            ->whereIn('type', ['call', 'email'])
+        // Get leads that had stage changes in the period (contacted leads)
+        // A lead is considered "contacted" if its status in lead_product was updated
+        $contactedLeadIds = \DB::table('lead_product')
+            ->whereIn('lead_id', $leadIds)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereNotNull('status')
             ->distinct('lead_id')
-            ->count('lead_id');
+            ->pluck('lead_id');
 
-        // Schemes Newly Engaged (new leads created)
-        $schemesNewlyEngaged = Lead::whereIn('id', $leadIds)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->where('status', 'new_lead')
-            ->count();
+        // Count total contacted leads
+        $totalContacted = $contactedLeadIds->count();
 
-        // Follow-Ups Conducted (activities where lead status is 'follow_ups')
-        $followUpsConducted = Activity::whereIn('lead_id', $leadIds)
-            ->whereBetween('activity_date', [$startDate, $endDate])
-            ->whereHas('lead', function ($q) {
-                $q->where('status', 'follow_ups');
+        // Get lead details for display
+        $contactedLeads = Lead::whereIn('id', $contactedLeadIds)
+            ->select('id', 'contact_type', 'name', 'company')
+            ->get()
+            ->map(function ($lead) {
+                // For company contacts, show company name
+                // For personal contacts, show person's name
+                $displayName = $lead->contact_type === 'company'
+                    ? ($lead->company ?? $lead->name)
+                    : $lead->name;
+
+                return [
+                    'id' => $lead->id,
+                    'display_name' => $displayName,
+                    'contact_type' => $lead->contact_type,
+                ];
             })
-            ->count();
-
-        // Total Schemes in Active Pipeline
-        $activePipeline = Lead::whereIn('id', $leadIds)
-            ->active()
-            ->count();
+            ->toArray();
 
         return [
-            'schemes_contacted' => $schemesContacted,
-            'schemes_newly_engaged' => $schemesNewlyEngaged,
-            'follow_ups_conducted' => $followUpsConducted,
-            'active_pipeline' => $activePipeline,
+            'total_contacted' => $totalContacted,
+            'contacted_leads' => $contactedLeads,
         ];
     }
 
     /**
      * Get schemes engagement update.
+     * Returns leads that had notes added during the period.
      */
     public function getSchemesEngagementUpdate(User $user, Carbon $startDate, Carbon $endDate): array
     {
         $leadIds = $this->getUserLeadIds($user);
 
-        $leads = Lead::whereIn('id', $leadIds)
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->with(['activities' => function ($q) use ($startDate, $endDate) {
-                $q->whereBetween('activity_date', [$startDate, $endDate]);
-            }])
-            ->get();
+        // Get lead-product combinations where notes were updated in the period
+        // We check for notes that are not empty and were updated in the date range
+        $engagements = \DB::table('lead_product')
+            ->join('leads', 'lead_product.lead_id', '=', 'leads.id')
+            ->join('products', 'lead_product.product_id', '=', 'products.id')
+            ->whereIn('lead_product.lead_id', $leadIds)
+            ->whereBetween('lead_product.updated_at', [$startDate, $endDate])
+            ->whereNotNull('lead_product.notes')
+            ->where('lead_product.notes', '!=', '')
+            ->select(
+                'leads.name as contact_person',
+                'leads.phone',
+                'lead_product.notes as feedback',
+                'products.name as product_name'
+            )
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'contact_person' => $item->contact_person,
+                    'phone' => $item->phone ?? 'N/A',
+                    'feedback' => $item->feedback,
+                ];
+            })
+            ->toArray();
 
-        return $leads->map(function ($lead) {
-            return [
-                'client' => $lead->company,
-                'product' => $lead->product,
-                'stage' => $lead->status,
-                'activities' => $lead->activities->count(),
-            ];
-        })->toArray();
+        return $engagements;
     }
 
     /**
@@ -217,23 +232,43 @@ class ReportService
 
     /**
      * Get won deals.
+     * Returns deals from lead_product where status='won' and won_at is in the period.
      */
     public function getWonDeals(User $user, Carbon $startDate, Carbon $endDate): array
     {
         $leadIds = $this->getUserLeadIds($user);
 
-        $deals = Lead::whereIn('id', $leadIds)
-            ->where('is_client', true)
-            ->whereBetween('won_at', [$startDate, $endDate])
-            ->get();
+        // Get won deals from lead_product pivot table
+        $wonDeals = \DB::table('lead_product')
+            ->join('leads', 'lead_product.lead_id', '=', 'leads.id')
+            ->join('products', 'lead_product.product_id', '=', 'products.id')
+            ->whereIn('lead_product.lead_id', $leadIds)
+            ->where('lead_product.status', 'won')
+            ->whereBetween('lead_product.won_at', [$startDate, $endDate])
+            ->select(
+                'leads.contact_type',
+                'leads.company',
+                'leads.name',
+                'products.name as product_name',
+                'lead_product.value as amount'
+            )
+            ->get()
+            ->map(function ($item) {
+                // For company contacts, show company name
+                // For personal contacts, show person's name
+                $displayName = $item->contact_type === 'company'
+                    ? ($item->company ?? $item->name)
+                    : $item->name;
 
-        return $deals->map(function ($lead) {
-            return [
-                'client' => $lead->company,
-                'product' => $lead->product,
-                'payment' => $lead->value,
-            ];
-        })->toArray();
+                return [
+                    'client_name' => $displayName,
+                    'product' => $item->product_name,
+                    'amount' => $item->amount ?? 0,
+                ];
+            })
+            ->toArray();
+
+        return $wonDeals;
     }
 
     /**
@@ -313,10 +348,10 @@ class ReportService
 
         if ($user->isManager()) {
             $teamMemberIds = $user->teamMembers()->pluck('id');
+
             return Lead::whereIn('added_by', $teamMemberIds->push($user->id))->pluck('id');
         }
 
         return Lead::where('added_by', $user->id)->pluck('id');
     }
 }
-
