@@ -133,7 +133,7 @@ class UserController extends Controller
     public function team(string $id): JsonResponse
     {
         $user = User::findOrFail($id);
-        
+
         // Only managers and admins can view teams
         // Since route is protected by auth middleware, Auth::user() will always return User
         /** @var User $authUser */
@@ -145,5 +145,35 @@ class UserController extends Controller
         $teamMembers = $user->teamMembers()->with('manager')->get();
 
         return response()->json(['team' => $teamMembers]);
+    }
+
+    /**
+     * Get users that can be assigned leads by the current user.
+     * - Admin: all active users
+     * - Manager: team members + themselves
+     */
+    public function assignable(): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        if ($user->isAdmin()) {
+            // Admin can assign to any active user
+            $users = User::where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'role']);
+        } elseif ($user->isManager()) {
+            // Manager can assign to team members + themselves
+            $teamMemberIds = $user->teamMembers()->pluck('id');
+            $users = User::whereIn('id', $teamMemberIds->push($user->id))
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'role']);
+        } else {
+            // Team members cannot reassign, return empty
+            $users = collect();
+        }
+
+        return response()->json(['users' => $users]);
     }
 }

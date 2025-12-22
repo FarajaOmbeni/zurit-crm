@@ -309,6 +309,51 @@ class LeadController extends Controller
     }
 
     /**
+     * Reassign lead to another user.
+     */
+    public function reassign(Request $request, string $id): JsonResponse
+    {
+        $lead = Lead::findOrFail($id);
+        $this->authorize('reassign', $lead);
+
+        $validated = $request->validate([
+            'new_user_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $currentUser = Auth::user();
+        $newUserId = $validated['new_user_id'];
+
+        // Verify the target user is valid for this reassignment
+        if ($currentUser->isManager() && !$currentUser->isAdmin()) {
+            // Manager can only reassign to their team members or themselves
+            $allowedUserIds = $currentUser->teamMembers()->pluck('id')->push($currentUser->id);
+            if (!$allowedUserIds->contains($newUserId)) {
+                return response()->json([
+                    'message' => 'You can only reassign leads to members of your team.',
+                    'errors' => [
+                        'new_user_id' => ['The selected user is not in your team.'],
+                    ],
+                ], 422);
+            }
+        }
+
+        // Store original owner on first reassignment
+        if (!$lead->original_added_by) {
+            $lead->original_added_by = $lead->added_by;
+        }
+
+        // Update assignment
+        $lead->added_by = $newUserId;
+        $lead->reassigned_by = $currentUser->id;
+        $lead->reassigned_at = now();
+        $lead->save();
+
+        $lead->load(['addedBy', 'originalAddedBy', 'reassignedBy', 'products']);
+
+        return response()->json($lead);
+    }
+
+    /**
      * Get kanban view data (grouped by product-specific status).
      */
     public function kanban(Request $request): JsonResponse

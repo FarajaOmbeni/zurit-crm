@@ -24,6 +24,9 @@ class Lead extends Model
         'source',
         'sector',
         'added_by',
+        'original_added_by',
+        'reassigned_by',
+        'reassigned_at',
         'status',
         'value',
         'product',
@@ -40,6 +43,7 @@ class Lead extends Model
         'expected_close_date' => 'date',
         'actual_close_date' => 'date',
         'won_at' => 'datetime',
+        'reassigned_at' => 'datetime',
         'is_client' => 'boolean',
     ];
 
@@ -49,6 +53,22 @@ class Lead extends Model
     public function addedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'added_by');
+    }
+
+    /**
+     * Get the original user who added this lead (before reassignment).
+     */
+    public function originalAddedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'original_added_by');
+    }
+
+    /**
+     * Get the user who reassigned this lead.
+     */
+    public function reassignedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reassigned_by');
     }
 
     /**

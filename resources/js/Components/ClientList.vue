@@ -1,4 +1,20 @@
 <script setup>
+import { ref, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import ReassignLeadModal from '@/Components/ReassignLeadModal.vue';
+
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user);
+
+// Check if current user can reassign leads (admin or manager)
+const canReassign = computed(() => {
+    const role = currentUser.value?.role;
+    return role === 'admin' || role === 'manager';
+});
+
+const showReassignModal = ref(false);
+const selectedClientForReassign = ref(null);
+
 const props = defineProps({
     clients: {
         type: Array,
@@ -30,7 +46,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['view', 'edit', 'pageChange']);
+const emit = defineEmits(['view', 'edit', 'pageChange', 'reassigned']);
 
 const handlePageChange = (page) => {
     emit('pageChange', page);
@@ -148,6 +164,17 @@ const handleView = (client) => {
 
 const handleEdit = (client) => {
     emit('edit', client);
+};
+
+const handleReassign = (client) => {
+    selectedClientForReassign.value = client;
+    showReassignModal.value = true;
+};
+
+const handleReassigned = (updatedClient) => {
+    showReassignModal.value = false;
+    selectedClientForReassign.value = null;
+    emit('reassigned', updatedClient);
 };
 </script>
 
@@ -307,7 +334,8 @@ const handleEdit = (client) => {
                                     <div class="flex items-center space-x-2">
                                         <!-- View Button -->
                                         <button @click="handleView(client)"
-                                            class="h-8 w-8 rounded-full bg-zurit-purple flex items-center justify-center text-white hover:bg-zurit-purple/90 transition-colors focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2">
+                                            class="h-8 w-8 rounded-full bg-zurit-purple flex items-center justify-center text-white hover:bg-zurit-purple/90 transition-colors focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2"
+                                            title="View">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -317,10 +345,20 @@ const handleEdit = (client) => {
                                         </button>
                                         <!-- Edit Button -->
                                         <button @click="handleEdit(client)"
-                                            class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                                            class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                                            title="Edit">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                        <!-- Reassign Button (only for admin/manager) -->
+                                        <button v-if="canReassign" @click="handleReassign(client)"
+                                            class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 hover:bg-blue-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                                            title="Reassign">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                             </svg>
                                         </button>
                                     </div>
@@ -399,4 +437,12 @@ const handleEdit = (client) => {
             </template>
         </div>
     </div>
+
+    <!-- Reassign Lead Modal -->
+    <ReassignLeadModal
+        :show="showReassignModal"
+        :lead="selectedClientForReassign"
+        @close="showReassignModal = false"
+        @reassigned="handleReassigned"
+    />
 </template>

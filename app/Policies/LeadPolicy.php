@@ -126,4 +126,24 @@ class LeadPolicy
     {
         return $this->update($user, $lead);
     }
+
+    /**
+     * Determine whether the user can reassign the lead to another user.
+     */
+    public function reassign(User $user, Lead $lead): bool
+    {
+        // Admin can reassign any lead
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Manager can reassign their own leads or team members' leads
+        if ($user->isManager()) {
+            return $lead->added_by === $user->id ||
+                $user->teamMembers()->pluck('id')->contains($lead->added_by);
+        }
+
+        // Team members cannot reassign leads
+        return false;
+    }
 }

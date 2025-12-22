@@ -5,7 +5,12 @@ import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import Alert from '@/Components/Alert.vue';
-import { ref, watch } from 'vue';
+import ReassignLeadModal from '@/Components/ReassignLeadModal.vue';
+import { ref, watch, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user);
 
 const props = defineProps({
     show: {
@@ -29,6 +34,15 @@ const props = defineProps({
 const emit = defineEmits(['close', 'edit', 'updated']);
 
 const isEditMode = ref(false);
+const showActionsMenu = ref(false);
+const showReassignModal = ref(false);
+
+// Check if current user can reassign leads (admin or manager)
+const canReassign = computed(() => {
+    const role = currentUser.value?.role;
+    return role === 'admin' || role === 'manager';
+});
+
 const form = ref({
     name: '',
     position: '',
@@ -156,7 +170,18 @@ const getServices = () => {
 };
 
 const handleEdit = () => {
+    showActionsMenu.value = false;
     isEditMode.value = true;
+};
+
+const handleReassign = () => {
+    showActionsMenu.value = false;
+    showReassignModal.value = true;
+};
+
+const handleReassigned = (updatedLead) => {
+    showReassignModal.value = false;
+    emit('updated', updatedLead);
 };
 
 const cancelEdit = () => {
@@ -520,9 +545,47 @@ const submit = async () => {
                 </form>
             </div>
 
-            <!-- Edit Profile Button (only show in view mode) -->
+            <!-- Action Buttons (only show in view mode) -->
             <div v-else class="flex justify-end">
-                <button @click="handleEdit"
+                <!-- Actions Dropdown (for admin/manager with reassign option) -->
+                <div v-if="canReassign" class="relative">
+                    <button @click="showActionsMenu = !showActionsMenu"
+                        class="inline-flex items-center space-x-2 rounded-lg bg-zurit-purple px-6 py-3 font-body text-sm font-medium text-white transition-colors hover:bg-zurit-purple/90 focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2">
+                        <span>Actions</span>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div v-if="showActionsMenu"
+                        class="absolute right-0 mt-2 w-48 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                        <div class="py-1">
+                            <button @click="handleEdit"
+                                class="w-full flex items-center px-4 py-2 text-sm text-light-black hover:bg-gray-100">
+                                <svg class="mr-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit profile
+                            </button>
+                            <button @click="handleReassign"
+                                class="w-full flex items-center px-4 py-2 text-sm text-light-black hover:bg-gray-100">
+                                <svg class="mr-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                                Reassign lead
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Click outside to close -->
+                    <div v-if="showActionsMenu" class="fixed inset-0 z-40" @click="showActionsMenu = false"></div>
+                </div>
+
+                <!-- Simple Edit Button (for team members without reassign) -->
+                <button v-else @click="handleEdit"
                     class="inline-flex items-center space-x-2 rounded-lg bg-zurit-purple px-6 py-3 font-body text-sm font-medium text-white transition-colors hover:bg-zurit-purple/90 focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2">
                     <span>Edit profile</span>
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -532,4 +595,12 @@ const submit = async () => {
             </div>
         </div>
     </Modal>
+
+    <!-- Reassign Lead Modal -->
+    <ReassignLeadModal
+        :show="showReassignModal"
+        :lead="client"
+        @close="showReassignModal = false"
+        @reassigned="handleReassigned"
+    />
 </template>
