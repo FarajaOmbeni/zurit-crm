@@ -37,7 +37,7 @@ const props = defineProps({
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
 
-const emit = defineEmits(['export', 'addLead', 'search', 'filter', 'sort']);
+const emit = defineEmits(['export', 'addLead', 'import', 'search', 'filter', 'sort']);
 
 const handleExport = () => {
     emit('export');
@@ -45,6 +45,10 @@ const handleExport = () => {
 
 const handleAddLead = () => {
     emit('addLead');
+};
+
+const handleImport = () => {
+    emit('import');
 };
 
 const handleSearch = (event) => {
@@ -90,13 +94,23 @@ const handleCompanySort = () => {
                     <span>Export CSV</span>
                 </button>
 
-                <!-- Import Button -->
+                <!-- Add Lead Button -->
                 <button @click="handleAddLead"
-                    class="inline-flex items-center space-x-2 rounded-lg bg-zurit-purple px-4 py-2 font-body text-sm font-medium text-white transition-colors hover:bg-zurit-purple/90 focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2">
+                    class="inline-flex items-center space-x-2 rounded-lg border border-zurit-purple bg-white px-4 py-2 font-body text-sm font-medium text-zurit-purple transition-colors hover:bg-zurit-purple/5 focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span>Import Leads</span>
+                    <span>Add Lead</span>
+                </button>
+
+                <!-- Import Button -->
+                <button @click="handleImport"
+                    class="inline-flex items-center space-x-2 rounded-lg bg-zurit-purple px-4 py-2 font-body text-sm font-medium text-white transition-colors hover:bg-zurit-purple/90 focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <span>Import CSV</span>
                 </button>
 
                 <!-- User Avatar -->

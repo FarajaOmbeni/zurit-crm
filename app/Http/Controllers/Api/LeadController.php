@@ -58,19 +58,27 @@ class LeadController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Determine contact type for conditional validation
+        $contactType = $request->input('contact_type', 'company');
+
         $validated = $request->validate([
-            'name' => ['nullable', 'string', 'max:255'],
+            'contact_type' => ['nullable', Rule::in(['company', 'personal'])],
+            'name' => $contactType === 'personal'
+                ? ['required', 'string', 'max:255'] // Required for personal contacts
+                : ['nullable', 'string', 'max:255'],
             'position' => ['nullable', 'string', 'max:255'],
-            'company' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'], // Contact email is optional
-            'phone' => ['nullable', 'string', 'max:255'], // Phone number is optional
+            'company' => $contactType === 'company'
+                ? ['required', 'string', 'max:255'] // Required for company contacts
+                : ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
             'sector' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', Rule::in(['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won', 'lost'])],
             'value' => ['nullable', 'numeric', 'min:0'],
-            'product' => ['nullable', 'string', 'max:255'], // This is the service type field
+            'product' => ['nullable', 'string', 'max:255'],
             'product_ids' => ['nullable', 'array'],
             'product_ids.*' => ['integer', 'exists:products,id'],
             'expected_close_date' => ['nullable', 'date'],
@@ -653,11 +661,19 @@ class LeadController extends Controller
      */
     public function import(Request $request): JsonResponse
     {
+        // Determine contact type for all imported leads
+        $contactType = $request->input('contact_type', 'company');
+
         $validated = $request->validate([
+            'contact_type' => ['nullable', Rule::in(['company', 'personal'])],
             'leads' => ['required', 'array'],
-            'leads.*.name' => ['nullable', 'string', 'max:255'],
+            'leads.*.name' => $contactType === 'personal'
+                ? ['required', 'string', 'max:255']
+                : ['nullable', 'string', 'max:255'],
             'leads.*.position' => ['nullable', 'string', 'max:255'],
-            'leads.*.company' => ['required', 'string', 'max:255'],
+            'leads.*.company' => $contactType === 'company'
+                ? ['required', 'string', 'max:255']
+                : ['nullable', 'string', 'max:255'],
             'leads.*.email' => ['nullable', 'email', 'max:255'],
             'leads.*.phone' => ['nullable', 'string', 'max:255'],
             'leads.*.city' => ['nullable', 'string', 'max:255'],
@@ -703,9 +719,13 @@ class LeadController extends Controller
                 // Skip if duplicate found
                 if ($duplicateFound) {
                     $skipped++;
+                    // Use name for personal contacts, company for company contacts
+                    $identifier = $contactType === 'personal'
+                        ? ($leadData['name'] ?? 'Unknown')
+                        : ($leadData['company'] ?? 'Unknown');
                     $duplicates[] = [
                         'row' => $index + 2, // +2 because index is 0-based and we skip header row
-                        'company' => $leadData['company'] ?? 'Unknown',
+                        'company' => $identifier, // Used as display name regardless of type
                         'email' => $email,
                         'phone' => $phone,
                         'reason' => $duplicateReason,
@@ -715,9 +735,10 @@ class LeadController extends Controller
 
                 // Create lead
                 $lead = Lead::create([
+                    'contact_type' => $contactType,
                     'name' => $leadData['name'] ?? null,
                     'position' => $leadData['position'] ?? null,
-                    'company' => $leadData['company'],
+                    'company' => $leadData['company'] ?? null,
                     'email' => $email,
                     'phone' => $phone,
                     'city' => $leadData['city'] ?? null,

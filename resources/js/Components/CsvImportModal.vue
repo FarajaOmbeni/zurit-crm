@@ -11,6 +11,11 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    contactType: {
+        type: String,
+        default: 'company',
+        validator: (value) => ['company', 'personal'].includes(value),
+    },
 });
 
 const emit = defineEmits(['close', 'confirm']);
@@ -22,6 +27,33 @@ const headers = ref([]);
 const error = ref(null);
 
 const hasPreview = computed(() => previewData.value.length > 0);
+const isPersonal = computed(() => props.contactType === 'personal');
+
+// Expected columns based on contact type
+const expectedColumns = computed(() => {
+    if (isPersonal.value) {
+        return {
+            required: ['name'],
+            optional: ['email', 'phone', 'company', 'position', 'city', 'country', 'source', 'sector'],
+            labels: {
+                name: 'Full Name (required)',
+                company: 'Workplace/Company',
+                position: 'Occupation',
+                sector: 'Service Interest',
+            },
+        };
+    }
+    return {
+        required: ['company'],
+        optional: ['name', 'position', 'email', 'phone', 'city', 'country', 'source', 'sector'],
+        labels: {
+            company: 'Company Name (required)',
+            name: 'Contact Person',
+            position: 'Position',
+            sector: 'Sector',
+        },
+    };
+});
 
 const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -44,7 +76,7 @@ const handleFileSelect = (event) => {
         try {
             const text = e.target.result;
             const lines = text.split('\n').filter(line => line.trim() !== '');
-            
+
             if (lines.length === 0) {
                 error.value = 'The CSV file is empty.';
                 return;
@@ -122,6 +154,7 @@ const handleConfirm = () => {
             file: selectedFile.value,
             content: e.target.result,
             headers: headers.value,
+            contactType: props.contactType, // Include contact type
         });
     };
     reader.readAsText(selectedFile.value);
@@ -149,7 +182,25 @@ const triggerFileInput = () => {
         <div class="p-6">
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-gray-200 pb-4 mb-6">
-                <h2 class="font-heading text-2xl font-bold text-light-black">Import Leads from CSV</h2>
+                <div class="flex items-center gap-3">
+                    <!-- Type indicator icon -->
+                    <div :class="isPersonal ? 'bg-green-100' : 'bg-blue-100'" class="w-10 h-10 rounded-full flex items-center justify-center">
+                        <svg v-if="isPersonal" class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <svg v-else class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="font-heading text-2xl font-bold text-light-black">
+                            Import {{ isPersonal ? 'Personal Contacts' : 'Company Leads' }}
+                        </h2>
+                        <p class="font-body text-xs text-zurit-gray">from CSV file</p>
+                    </div>
+                </div>
                 <button @click="handleClose"
                     class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,6 +208,24 @@ const triggerFileInput = () => {
                             d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
+            </div>
+
+            <!-- Expected Columns Info -->
+            <div class="mb-4 rounded-lg bg-gray-50 border border-gray-200 p-4">
+                <h4 class="font-body text-sm font-medium text-light-black mb-2">Expected CSV Columns:</h4>
+                <div class="flex flex-wrap gap-2">
+                    <span v-for="col in expectedColumns.required" :key="col"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {{ expectedColumns.labels[col] || col }}
+                    </span>
+                    <span v-for="col in expectedColumns.optional" :key="col"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        {{ expectedColumns.labels[col] || col }}
+                    </span>
+                </div>
+                <p class="font-body text-xs text-zurit-gray mt-2">
+                    <span class="text-red-600">Red</span> = required, <span class="text-gray-600">Gray</span> = optional
+                </p>
             </div>
 
             <!-- Error Message -->

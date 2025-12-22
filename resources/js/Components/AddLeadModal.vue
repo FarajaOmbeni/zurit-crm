@@ -10,19 +10,55 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    contactType: {
+        type: String,
+        default: 'company', // 'company' or 'personal'
+        validator: (value) => ['company', 'personal'].includes(value),
+    },
 });
 
 const emit = defineEmits(['close', 'lead-added']);
 
+// Computed labels based on contact type
+const isPersonal = computed(() => props.contactType === 'personal');
+
+const labels = computed(() => {
+    if (isPersonal.value) {
+        return {
+            title: 'Add Personal Contact',
+            sectionTitle: 'Personal Details',
+            primaryField: 'Full Name',
+            primaryPlaceholder: 'Enter full name',
+            secondarySection: 'Additional Info',
+            positionLabel: 'Occupation',
+            positionPlaceholder: 'Their occupation',
+            sectorLabel: 'Service Interest',
+            sectorPlaceholder: 'Service they are interested in',
+        };
+    }
+    return {
+        title: 'Add Company Lead',
+        sectionTitle: 'Company Details',
+        primaryField: 'Company Name',
+        primaryPlaceholder: 'Enter company name',
+        secondarySection: 'Contact Person',
+        positionLabel: 'Position',
+        positionPlaceholder: "Contact person's position",
+        sectorLabel: 'Sector',
+        sectorPlaceholder: 'Industry sector',
+    };
+});
+
 // Form fields
 const form = ref({
-    // Contact Person
+    // Primary field (name for personal, company for company)
+    primary_field: '',
+    // Contact details
     contact_name: '',
     contact_position: '',
     contact_email: '',
     contact_phone: '',
-    // Company Details
-    company_name: '',
+    // Location
     city: '',
     country: '',
     sector: '',
@@ -47,11 +83,11 @@ const sourceOptions = [
 
 const resetForm = () => {
     form.value = {
+        primary_field: '',
         contact_name: '',
         contact_position: '',
         contact_email: '',
         contact_phone: '',
-        company_name: '',
         city: '',
         country: '',
         sector: '',
@@ -64,9 +100,11 @@ const resetForm = () => {
 const validateForm = () => {
     errors.value = {};
 
-    // Company name is required
-    if (!form.value.company_name.trim()) {
-        errors.value.company_name = 'Company name is required';
+    // Primary field is required
+    if (!form.value.primary_field.trim()) {
+        errors.value.primary_field = isPersonal.value
+            ? 'Full name is required'
+            : 'Company name is required';
     }
 
     // Contact email is optional, but if provided, must be valid
@@ -87,24 +125,36 @@ const handleSubmit = async () => {
     notification.value = { type: null, message: '' };
 
     try {
-        const response = await axios.post('/api/leads', {
-            company: form.value.company_name,
-            name: form.value.contact_name,
-            position: form.value.contact_position,
+        // Build payload based on contact type
+        const payload = {
+            contact_type: props.contactType,
             email: form.value.contact_email,
             phone: form.value.contact_phone,
             city: form.value.city,
             country: form.value.country,
             sector: form.value.sector,
             source: form.value.source,
-            // Note: Lead will be automatically associated with all active products
             status: 'new_lead',
-        });
+        };
+
+        if (isPersonal.value) {
+            // For personal contacts: name is primary, company is secondary (optional)
+            payload.name = form.value.primary_field;
+            payload.company = form.value.contact_name || null; // Use contact_name field for workplace
+            payload.position = form.value.contact_position;
+        } else {
+            // For company contacts: company is primary, name is contact person
+            payload.company = form.value.primary_field;
+            payload.name = form.value.contact_name;
+            payload.position = form.value.contact_position;
+        }
+
+        const response = await axios.post('/api/leads', payload);
 
         // Show success notification
         notification.value = {
             type: 'success',
-            message: 'Lead added successfully!',
+            message: isPersonal.value ? 'Contact added successfully!' : 'Lead added successfully!',
         };
 
         // Emit success event
@@ -123,11 +173,12 @@ const handleSubmit = async () => {
             const mappedErrors = {};
 
             for (const [key, value] of Object.entries(backendErrors)) {
-                // Map 'email' to 'contact_email' and 'phone' to 'contact_phone'
                 if (key === 'email') {
                     mappedErrors.contact_email = Array.isArray(value) ? value[0] : value;
                 } else if (key === 'phone') {
                     mappedErrors.contact_phone = Array.isArray(value) ? value[0] : value;
+                } else if (key === 'company' || key === 'name') {
+                    mappedErrors.primary_field = Array.isArray(value) ? value[0] : value;
                 } else {
                     mappedErrors[key] = Array.isArray(value) ? value[0] : value;
                 }
@@ -140,7 +191,7 @@ const handleSubmit = async () => {
                 errors.value.submit = error.response.data.message;
             }
         } else {
-            errors.value.submit = error.response?.data?.message || 'Failed to add lead. Please try again.';
+            errors.value.submit = error.response?.data?.message || 'Failed to add. Please try again.';
         }
     } finally {
         saving.value = false;
@@ -171,7 +222,20 @@ watch(() => props.show, (isShowing) => {
         <div class="p-6">
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-gray-200 pb-4">
-                <h2 class="font-heading text-2xl font-bold text-light-black">Add New Lead</h2>
+                <div class="flex items-center gap-3">
+                    <!-- Type indicator icon -->
+                    <div :class="isPersonal ? 'bg-green-100' : 'bg-blue-100'" class="w-10 h-10 rounded-full flex items-center justify-center">
+                        <svg v-if="isPersonal" class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <svg v-else class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </div>
+                    <h2 class="font-heading text-2xl font-bold text-light-black">{{ labels.title }}</h2>
+                </div>
                 <button @click="handleClose"
                     class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -183,21 +247,21 @@ watch(() => props.show, (isShowing) => {
 
             <!-- Form -->
             <form @submit.prevent="handleSubmit" class="space-y-6">
-                <!-- Company Details Section -->
+                <!-- Primary Details Section -->
                 <div class="pt-6">
                     <label class="mb-4 block font-body text-md font-medium text-light-black">
-                        Company Details
+                        {{ labels.sectionTitle }}
                     </label>
 
-                    <!-- Company Name -->
+                    <!-- Primary Field (Company Name or Full Name) -->
                     <div class="mb-4">
-                        <label for="company_name" class="mb-2 block font-body text-sm font-medium text-light-black">
-                            Company Name <span class="text-red-500">*</span>
+                        <label for="primary_field" class="mb-2 block font-body text-sm font-medium text-light-black">
+                            {{ labels.primaryField }} <span class="text-red-500">*</span>
                         </label>
-                        <input id="company_name" v-model="form.company_name" type="text" placeholder="Company name"
+                        <input id="primary_field" v-model="form.primary_field" type="text" :placeholder="labels.primaryPlaceholder"
                             class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                            :class="{ 'border-red-500': errors.company_name }" />
-                        <p v-if="errors.company_name" class="mt-1 text-sm text-red-600">{{ errors.company_name }}</p>
+                            :class="{ 'border-red-500': errors.primary_field }" />
+                        <p v-if="errors.primary_field" class="mt-1 text-sm text-red-600">{{ errors.primary_field }}</p>
                     </div>
 
                     <!-- Country -->
@@ -218,12 +282,12 @@ watch(() => props.show, (isShowing) => {
                             class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
                     </div>
 
-                    <!-- Sector -->
+                    <!-- Sector / Interest -->
                     <div class="mb-4">
                         <label for="sector" class="mb-2 block font-body text-sm font-medium text-light-black">
-                            Sector
+                            {{ labels.sectorLabel }}
                         </label>
-                        <input id="sector" v-model="form.sector" type="text" placeholder="Sector"
+                        <input id="sector" v-model="form.sector" type="text" :placeholder="labels.sectorPlaceholder"
                             class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
                     </div>
 
@@ -250,30 +314,30 @@ watch(() => props.show, (isShowing) => {
                         </div>
                     </div>
 
-                    <!-- Contact Person Section -->
+                    <!-- Secondary Section (Contact Person for Company / Additional Info for Personal) -->
                     <div>
                         <label class="mb-4 block font-body text-sm font-medium text-light-black">
-                            Contact Person
+                            {{ labels.secondarySection }}
                         </label>
 
-                        <!-- Name -->
+                        <!-- Secondary Name Field -->
                         <div class="mb-4">
                             <label for="contact_name" class="mb-2 block font-body text-sm font-medium text-light-black">
-                                Name
+                                {{ isPersonal ? 'Workplace/Company' : 'Name' }}
                             </label>
                             <input id="contact_name" v-model="form.contact_name" type="text"
-                                placeholder="Contact person's name"
+                                :placeholder="isPersonal ? 'Where they work (optional)' : 'Contact person\'s name'"
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
                         </div>
 
-                        <!-- Position -->
+                        <!-- Position / Occupation -->
                         <div class="mb-4">
                             <label for="contact_position"
                                 class="mb-2 block font-body text-sm font-medium text-light-black">
-                                Position
+                                {{ labels.positionLabel }}
                             </label>
                             <input id="contact_position" v-model="form.contact_position" type="text"
-                                placeholder="Contact person's position"
+                                :placeholder="labels.positionPlaceholder"
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
                         </div>
 
@@ -284,7 +348,7 @@ watch(() => props.show, (isShowing) => {
                                 Email
                             </label>
                             <input id="contact_email" v-model="form.contact_email" type="email"
-                                placeholder="contact@example.com"
+                                placeholder="email@example.com"
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
                                 :class="{ 'border-red-500': errors.contact_email }" />
                             <p v-if="errors.contact_email" class="mt-1 text-sm text-red-600">{{ errors.contact_email }}
@@ -312,7 +376,7 @@ watch(() => props.show, (isShowing) => {
                     <button type="button" @click="handleClose"
                         class="rounded-lg border border-gray-300 bg-white px-4 py-2 font-body text-sm font-medium text-light-black transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2"
                         :disabled="saving">
-                        Clear
+                        Cancel
                     </button>
                     <PrimaryButton type="submit" :disabled="saving" class="inline-flex items-center gap-2">
                         <svg v-if="!saving" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,7 +393,7 @@ watch(() => props.show, (isShowing) => {
                             </svg>
                             Adding...
                         </span>
-                        <span v-else>Add New Lead</span>
+                        <span v-else>{{ isPersonal ? 'Add Contact' : 'Add Lead' }}</span>
                     </PrimaryButton>
                 </div>
             </form>

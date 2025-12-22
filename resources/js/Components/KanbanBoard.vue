@@ -3,7 +3,9 @@ import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import axios from 'axios';
 import LeadCard from './LeadCard.vue';
 import LeadNotesModal from './LeadNotesModal.vue';
+import LeadTypeSelector from './LeadTypeSelector.vue';
 import AddLeadModal from './AddLeadModal.vue';
+import AddPersonalLeadModal from './AddPersonalLeadModal.vue';
 
 const props = defineProps({
     searchQuery: {
@@ -26,7 +28,11 @@ const headerScrollRef = ref(null);
 const contentScrollRef = ref(null);
 const showNotesModal = ref(false);
 const selectedLeadForNotes = ref(null);
-const showAddLeadModal = ref(false);
+
+// Type selector and add lead modals
+const showTypeSelector = ref(false);
+const showAddCompanyModal = ref(false);
+const showAddPersonalModal = ref(false);
 
 // Pipeline stages configuration
 const stages = [
@@ -187,17 +193,36 @@ const handleDrop = async (event, targetStageSlug) => {
 };
 
 const handleAddLead = (stageSlug) => {
-    showAddLeadModal.value = true;
+    // Show type selector first
+    showTypeSelector.value = true;
 };
 
-const handleCloseAddLeadModal = () => {
-    showAddLeadModal.value = false;
+const handleTypeSelected = (type) => {
+    showTypeSelector.value = false;
+    if (type === 'company') {
+        showAddCompanyModal.value = true;
+    } else {
+        showAddPersonalModal.value = true;
+    }
+};
+
+const handleTypeSelectorClose = () => {
+    showTypeSelector.value = false;
+};
+
+const handleCloseCompanyModal = () => {
+    showAddCompanyModal.value = false;
+};
+
+const handleClosePersonalModal = () => {
+    showAddPersonalModal.value = false;
 };
 
 const handleLeadAdded = (newLead) => {
     // Refresh the kanban board to show the new lead
     fetchLeads();
-    showAddLeadModal.value = false;
+    showAddCompanyModal.value = false;
+    showAddPersonalModal.value = false;
     emit('addLead', newLead);
 };
 
@@ -344,8 +369,28 @@ onMounted(() => {
         <LeadNotesModal :show="showNotesModal" :lead="selectedLeadForNotes" :product-id="productId"
             @close="handleCloseNotesModal" @note-added="handleNoteAdded" />
 
-        <!-- Add Lead Modal -->
-        <AddLeadModal :show="showAddLeadModal" @close="handleCloseAddLeadModal" @lead-added="handleLeadAdded" />
+        <!-- Lead Type Selector Modal -->
+        <LeadTypeSelector
+            :show="showTypeSelector"
+            title="What type of lead would you like to add?"
+            @close="handleTypeSelectorClose"
+            @select="handleTypeSelected"
+        />
+
+        <!-- Add Company Lead Modal -->
+        <AddLeadModal
+            :show="showAddCompanyModal"
+            contact-type="company"
+            @close="handleCloseCompanyModal"
+            @lead-added="handleLeadAdded"
+        />
+
+        <!-- Add Personal Lead Modal -->
+        <AddPersonalLeadModal
+            :show="showAddPersonalModal"
+            @close="handleClosePersonalModal"
+            @lead-added="handleLeadAdded"
+        />
     </div>
 </template>
 

@@ -88,9 +88,9 @@ const handleNotes = (event) => {
 <template>
     <div draggable="true" @dragstart="handleDragStart" @dragend="handleDragEnd"
         class="cursor-move rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-        <!-- Company Name as Title -->
+        <!-- Company Name (or Person Name for personal contacts) as Title -->
         <h4 class="font-heading text-base font-semibold text-light-black mb-2">
-            {{ lead.company || 'N/A' }}
+            {{ lead.contact_type === 'personal' ? (lead.name || 'N/A') : (lead.company || 'N/A') }}
         </h4>
 
         <!-- Lead product -->

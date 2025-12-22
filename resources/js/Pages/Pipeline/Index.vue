@@ -22,6 +22,7 @@ const searchQuery = ref('');
 const showLeadModal = ref(false);
 const selectedLead = ref(null);
 const startInEditMode = ref(false);
+const kanbanKey = ref(0); // Used to force refresh kanban board
 
 // Check if product is selected, redirect if missing
 onMounted(() => {
@@ -78,9 +79,9 @@ const handleExport = async () => {
     }
 };
 
-const handleAddLead = (stageSlug) => {
-    // TODO: Implement add lead functionality
-    console.log('Add lead to stage:', stageSlug);
+const handleLeadAdded = () => {
+    // Force refresh the kanban board when a lead is added
+    kanbanKey.value++;
 };
 
 const handleFilter = (filterType) => {
@@ -141,9 +142,9 @@ const closeLeadModal = () => {
         <div v-if="selectedProductId && selectedProductName" class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <LeadHeader :product-id="selectedProductId" :product-name="selectedProductName" @search="handleSearch"
-                    @export="handleExport" @add-lead="handleAddLead" @filter="handleFilter" />
+                    @export="handleExport" @add-lead="handleLeadAdded" @filter="handleFilter" />
 
-                <KanbanBoard :search-query="searchQuery" :product-id="selectedProductId" @add-lead="handleAddLead"
+                <KanbanBoard :key="kanbanKey" :search-query="searchQuery" :product-id="selectedProductId" @add-lead="handleLeadAdded"
                     @view-lead="handleViewLead" />
 
                 <!-- Lead View Modal (using ClientViewModal component) -->

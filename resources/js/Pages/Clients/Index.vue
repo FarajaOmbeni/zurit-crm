@@ -4,6 +4,8 @@ import ClientsHeader from '@/Components/ClientsHeader.vue';
 import ClientList from '@/Components/ClientList.vue';
 import ClientViewModal from '@/Components/ClientViewModal.vue';
 import CsvImportModal from '@/Components/CsvImportModal.vue';
+import AddLeadModal from '@/Components/AddLeadModal.vue';
+import LeadTypeSelector from '@/Components/LeadTypeSelector.vue';
 import Alert from '@/Components/Alert.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
@@ -21,6 +23,10 @@ const loading = ref(false);
 const showEmptyState = ref(false);
 const showModal = ref(false);
 const showImportModal = ref(false);
+const showAddLeadModal = ref(false);
+const showTypeSelector = ref(false);
+const selectedContactType = ref('company');
+const pendingAction = ref(null); // 'add' or 'import'
 const importing = ref(false);
 const showSuccessAlert = ref(false);
 const successMessage = ref('');
@@ -155,8 +161,43 @@ const handleExport = async () => {
 };
 
 const handleAddLead = () => {
-    // Show import modal
-    showImportModal.value = true;
+    // Show type selector first
+    pendingAction.value = 'add';
+    showTypeSelector.value = true;
+};
+
+const handleImport = () => {
+    // Show type selector first
+    pendingAction.value = 'import';
+    showTypeSelector.value = true;
+};
+
+const handleTypeSelected = (type) => {
+    selectedContactType.value = type;
+    showTypeSelector.value = false;
+
+    // Proceed based on pending action
+    if (pendingAction.value === 'add') {
+        showAddLeadModal.value = true;
+    } else if (pendingAction.value === 'import') {
+        showImportModal.value = true;
+    }
+    pendingAction.value = null;
+};
+
+const handleTypeSelectorClose = () => {
+    showTypeSelector.value = false;
+    pendingAction.value = null;
+};
+
+const handleLeadAdded = () => {
+    showAddLeadModal.value = false;
+    fetchClients(searchTerm.value, 1);
+    fetchStats();
+};
+
+const handleAddLeadClose = () => {
+    showAddLeadModal.value = false;
 };
 
 const handleImportConfirm = async (importData) => {
@@ -234,21 +275,30 @@ const handleImportConfirm = async (importData) => {
                 }
             });
 
-            // Only add if company is present (required field)
-            if (lead.company) {
+            // Check required field based on contact type
+            const contactType = importData.contactType || selectedContactType.value;
+            const isPersonal = contactType === 'personal';
+            const requiredField = isPersonal ? lead.name : lead.company;
+
+            if (requiredField) {
                 leads.push(lead);
             }
         }
 
+        const contactType = importData.contactType || selectedContactType.value;
+        const isPersonal = contactType === 'personal';
+        const requiredFieldLabel = isPersonal ? 'name' : 'company name';
+
         if (leads.length === 0) {
-            alert('No valid leads found in the CSV file. Please ensure the file has data rows with at least a company name.');
+            alert(`No valid leads found in the CSV file. Please ensure the file has data rows with at least a ${requiredFieldLabel}.`);
             importing.value = false;
             return;
         }
 
-        // Send to backend
+        // Send to backend with contact type
         const response = await window.axios.post('/api/leads/import', {
             leads: leads,
+            contact_type: contactType,
         });
 
         // Close modal and refresh client list
@@ -382,7 +432,7 @@ const closeModal = () => {
                 <ClientsHeader title="Client Database"
                     subtitle="Help clients build sustainable wealth through strategic financial guidance"
                     :avg-progress="stats.avgProgress" :active-clients="stats.activeClients" :total-leads="stats.totalLeads" :completed="stats.completed"
-                    :company-sort-order="sortOrder" @export="handleExport" @add-lead="handleAddLead"
+                    :company-sort-order="sortOrder" @export="handleExport" @add-lead="handleAddLead" @import="handleImport"
                     @search="handleSearch" @filter="handleFilter" @sort="handleSort" />
 
                 <ClientList :clients="clients" :total="total" :current-page="currentPage" :last-page="lastPage"
@@ -393,8 +443,30 @@ const closeModal = () => {
                 <ClientViewModal :show="showModal" :client="selectedClient" :initial-edit-mode="startInEditMode"
                     @close="closeModal" @edit="handleEdit" @updated="handleClientUpdated" />
 
+                <!-- Lead Type Selector Modal -->
+                <LeadTypeSelector
+                    :show="showTypeSelector"
+                    :title="pendingAction === 'import' ? 'What type of leads are you importing?' : 'What type of lead would you like to add?'"
+                    @close="handleTypeSelectorClose"
+                    @select="handleTypeSelected"
+                />
+
+                <!-- Add Lead Modal -->
+                <AddLeadModal
+                    :show="showAddLeadModal"
+                    :contact-type="selectedContactType"
+                    @close="handleAddLeadClose"
+                    @lead-added="handleLeadAdded"
+                />
+
                 <!-- CSV Import Modal -->
-                <CsvImportModal :show="showImportModal" :importing="importing" @close="handleImportClose" @confirm="handleImportConfirm" />
+                <CsvImportModal
+                    :show="showImportModal"
+                    :importing="importing"
+                    :contact-type="selectedContactType"
+                    @close="handleImportClose"
+                    @confirm="handleImportConfirm"
+                />
 
                 <!-- Import Results Alert -->
                 <div v-if="showSuccessAlert" class="fixed top-4 right-4 z-50 max-w-lg">
