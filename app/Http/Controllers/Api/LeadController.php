@@ -77,6 +77,36 @@ class LeadController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        // Check for duplicates by email or phone
+        $email = $validated['email'] ?? null;
+        $phone = $validated['phone'] ?? null;
+
+        if ($email) {
+            $existingByEmail = Lead::with('addedBy')->where('email', $email)->first();
+            if ($existingByEmail) {
+                $salesperson = $existingByEmail->addedBy?->name ?? 'Unknown';
+                return response()->json([
+                    'message' => 'A lead with this email already exists.',
+                    'errors' => [
+                        'email' => ["This email is already assigned to a lead belonging to {$salesperson}."],
+                    ],
+                ], 422);
+            }
+        }
+
+        if ($phone) {
+            $existingByPhone = Lead::with('addedBy')->where('phone', $phone)->first();
+            if ($existingByPhone) {
+                $salesperson = $existingByPhone->addedBy?->name ?? 'Unknown';
+                return response()->json([
+                    'message' => 'A lead with this phone number already exists.',
+                    'errors' => [
+                        'phone' => ["This phone number is already assigned to a lead belonging to {$salesperson}."],
+                    ],
+                ], 422);
+            }
+        }
+
         $lead = Lead::create([
             ...$validated,
             'added_by' => Auth::id(),
@@ -574,19 +604,21 @@ class LeadController extends Controller
 
                 // Check for duplicate email
                 if ($email) {
-                    $existingByEmail = Lead::where('email', $email)->first();
+                    $existingByEmail = Lead::with('addedBy')->where('email', $email)->first();
                     if ($existingByEmail) {
                         $duplicateFound = true;
-                        $duplicateReason = "Email already exists: {$email}";
+                        $salesperson = $existingByEmail->addedBy?->name ?? 'Unknown';
+                        $duplicateReason = "Email already exists (belongs to {$salesperson})";
                     }
                 }
 
                 // Check for duplicate phone (if email check didn't find a duplicate)
                 if (!$duplicateFound && $phone) {
-                    $existingByPhone = Lead::where('phone', $phone)->first();
+                    $existingByPhone = Lead::with('addedBy')->where('phone', $phone)->first();
                     if ($existingByPhone) {
                         $duplicateFound = true;
-                        $duplicateReason = "Phone already exists: {$phone}";
+                        $salesperson = $existingByPhone->addedBy?->name ?? 'Unknown';
+                        $duplicateReason = "Phone already exists (belongs to {$salesperson})";
                     }
                 }
 
