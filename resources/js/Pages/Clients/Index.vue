@@ -33,7 +33,7 @@ let loadingTimeout = null;
 const stats = ref({
     avgProgress: 0,
     activeClients: 0,
-    pausedClients: 0,
+    totalLeads: 0,
     completed: 0,
 });
 
@@ -381,7 +381,7 @@ const closeModal = () => {
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <ClientsHeader title="Client Database"
                     subtitle="Help clients build sustainable wealth through strategic financial guidance"
-                    :avg-progress="stats.avgProgress" :active-clients="stats.activeClients" :paused-clients="stats.pausedClients" :completed="stats.completed"
+                    :avg-progress="stats.avgProgress" :active-clients="stats.activeClients" :total-leads="stats.totalLeads" :completed="stats.completed"
                     :company-sort-order="sortOrder" @export="handleExport" @add-lead="handleAddLead"
                     @search="handleSearch" @filter="handleFilter" @sort="handleSort" />
 

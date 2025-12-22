@@ -129,9 +129,9 @@ class ClientController extends Controller
             ->where('status', 'won')
             ->count();
 
-        // Paused/Lost clients (status = lost)
-        $pausedClients = (clone $query)
-            ->where('status', 'lost')
+        // Total leads (all leads that are not clients yet)
+        $totalLeads = (clone $query)
+            ->where('is_client', false)
             ->count();
 
         // Completed - clients with actual_close_date set (deals that have been closed)
@@ -167,7 +167,7 @@ class ClientController extends Controller
         return response()->json([
             'avgProgress' => $avgProgress,
             'activeClients' => $activeClients,
-            'pausedClients' => $pausedClients,
+            'totalLeads' => $totalLeads,
             'completed' => $completed,
         ]);
     }

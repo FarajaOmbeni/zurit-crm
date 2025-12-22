@@ -19,9 +19,9 @@ const props = defineProps({
         type: Number,
         default: 8,
     },
-    pausedClients: {
+    totalLeads: {
         type: Number,
-        default: 3,
+        default: 0,
     },
     completed: {
         type: Number,
@@ -123,10 +123,10 @@ const handleCompanySort = () => {
                 }}</p>
             </div>
 
-            <!-- Paused Clients Card -->
+            <!-- Total Leads Card -->
             <div class="rounded-lg bg-blue-100 p-6 shadow-sm">
-                <h3 class="font-body text-sm font-medium text-blue-800">Paused Clients</h3>
-                <p class="mt-2 font-heading text-3xl font-bold text-blue-900">{{ String(pausedClients).padStart(2, '0')
+                <h3 class="font-body text-sm font-medium text-blue-800">Total Leads</h3>
+                <p class="mt-2 font-heading text-3xl font-bold text-blue-900">{{ String(totalLeads).padStart(2, '0')
                 }}</p>
             </div>
 
