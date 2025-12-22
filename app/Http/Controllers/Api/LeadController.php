@@ -215,10 +215,12 @@ class LeadController extends Controller
         $validated = $request->validate([
             'status' => ['required', Rule::in(['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won', 'lost'])],
             'product_id' => ['required', 'integer', 'exists:products,id'],
+            'value' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $productId = $validated['product_id'];
         $status = $validated['status'];
+        $dealValue = $validated['value'] ?? null;
 
         // Verify lead has this product
         if (!$lead->products()->where('products.id', $productId)->exists()) {
@@ -229,6 +231,13 @@ class LeadController extends Controller
 
         // Update status in pivot table using Lead model method
         $updated = $lead->updateStatusForProduct($productId, $status);
+
+        // If status is 'won' and value is provided, update the pivot table value
+        if ($status === 'won' && $dealValue !== null) {
+            $lead->updateValueForProduct($productId, $dealValue);
+            // Also update the main lead value for overall revenue tracking
+            $lead->value = $dealValue;
+        }
 
         if (!$updated) {
             return response()->json([
@@ -406,6 +415,9 @@ class LeadController extends Controller
         $user = Auth::user();
         $productId = $request->input('product_id');
 
+        // Get the product to retrieve its price
+        $product = Product::find($productId);
+
         // Get authorized leads query
         $authorizedQuery = $this->getAuthorizedLeadsQuery($user);
 
@@ -492,6 +504,8 @@ class LeadController extends Controller
             'leads' => $grouped,
             'statuses' => ['new_lead', 'initial_outreach', 'follow_ups', 'negotiations', 'won'],
             'product_id' => $productId,
+            'product_name' => $product?->name,
+            'product_price' => $product?->price ? (float) $product->price : 0,
         ]);
     }
 

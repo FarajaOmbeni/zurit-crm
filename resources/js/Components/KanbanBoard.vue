@@ -6,6 +6,7 @@ import LeadNotesModal from './LeadNotesModal.vue';
 import LeadTypeSelector from './LeadTypeSelector.vue';
 import AddLeadModal from './AddLeadModal.vue';
 import AddPersonalLeadModal from './AddPersonalLeadModal.vue';
+import WonDealModal from './WonDealModal.vue';
 
 const props = defineProps({
     searchQuery: {
@@ -33,6 +34,15 @@ const selectedLeadForNotes = ref(null);
 const showTypeSelector = ref(false);
 const showAddCompanyModal = ref(false);
 const showAddPersonalModal = ref(false);
+
+// Won deal modal state
+const showWonDealModal = ref(false);
+const pendingWonLead = ref(null);
+const pendingWonFromColumn = ref(null);
+
+// Product info
+const productPrice = ref(0);
+const productName = ref('');
 
 // Pipeline stages configuration
 const stages = [
@@ -62,7 +72,7 @@ const stages = [
     },
     {
         slug: 'won',
-        name: 'Closing',
+        name: 'Won',
         color: '#10B981', // Green
         dotColor: 'bg-green-500',
     },
@@ -84,6 +94,8 @@ const fetchLeads = async () => {
         console.log('Kanban API Response:', response.data);
         console.log('Product ID:', props.productId);
         leads.value = response.data.leads || {};
+        productPrice.value = response.data.product_price || 0;
+        productName.value = response.data.product_name || '';
         console.log('Leads loaded:', leads.value);
         console.log('Leads keys:', Object.keys(leads.value));
         console.log('Total leads count:', Object.values(leads.value).flat().length);
@@ -159,8 +171,20 @@ const handleDrop = async (event, targetStageSlug) => {
         return;
     }
 
-    const leadId = draggedLead.value.id;
-    const oldStage = draggedFromColumn.value;
+    // If dropping to 'won' column, show the won deal modal to capture value
+    if (targetStageSlug === 'won') {
+        pendingWonLead.value = { ...draggedLead.value };
+        pendingWonFromColumn.value = draggedFromColumn.value;
+        showWonDealModal.value = true;
+        return;
+    }
+
+    // For other stages, proceed with normal update
+    await updateLeadStatus(draggedLead.value, draggedFromColumn.value, targetStageSlug);
+};
+
+const updateLeadStatus = async (lead, oldStage, targetStageSlug, dealValue = null) => {
+    const leadId = lead.id;
 
     // Optimistically update UI
     if (leads.value[oldStage]) {
@@ -171,15 +195,22 @@ const handleDrop = async (event, targetStageSlug) => {
         leads.value[targetStageSlug] = [];
     }
 
-    const updatedLead = { ...draggedLead.value, status: targetStageSlug };
+    const updatedLead = { ...lead, status: targetStageSlug };
     leads.value[targetStageSlug].push(updatedLead);
 
     // Update on server
     try {
-        await axios.patch(`/api/leads/${leadId}/status`, {
+        const payload = {
             status: targetStageSlug,
             product_id: props.productId,
-        });
+        };
+
+        // Include deal value if provided (for won deals)
+        if (dealValue !== null) {
+            payload.value = dealValue;
+        }
+
+        await axios.patch(`/api/leads/${leadId}/status`, payload);
     } catch (error) {
         console.error('Error updating lead status:', error);
         // Revert on error
@@ -187,9 +218,24 @@ const handleDrop = async (event, targetStageSlug) => {
             leads.value[targetStageSlug] = leads.value[targetStageSlug].filter(l => l.id !== leadId);
         }
         if (leads.value[oldStage]) {
-            leads.value[oldStage].push(draggedLead.value);
+            leads.value[oldStage].push(lead);
         }
     }
+};
+
+const handleWonDealConfirm = async ({ leadId, value }) => {
+    if (pendingWonLead.value && pendingWonFromColumn.value) {
+        await updateLeadStatus(pendingWonLead.value, pendingWonFromColumn.value, 'won', value);
+    }
+    showWonDealModal.value = false;
+    pendingWonLead.value = null;
+    pendingWonFromColumn.value = null;
+};
+
+const handleWonDealClose = () => {
+    showWonDealModal.value = false;
+    pendingWonLead.value = null;
+    pendingWonFromColumn.value = null;
 };
 
 const handleAddLead = (stageSlug) => {
@@ -390,6 +436,16 @@ onMounted(() => {
             :show="showAddPersonalModal"
             @close="handleClosePersonalModal"
             @lead-added="handleLeadAdded"
+        />
+
+        <!-- Won Deal Modal -->
+        <WonDealModal
+            :show="showWonDealModal"
+            :lead="pendingWonLead"
+            :default-value="productPrice"
+            :product-name="productName"
+            @close="handleWonDealClose"
+            @confirm="handleWonDealConfirm"
         />
     </div>
 </template>

@@ -16,7 +16,8 @@ defineProps({
         default: () => ({
             leadsToday: 0,
             clientsToday: 0,
-            totalRevenue: 0,
+            revenueToday: 0,
+            revenueThisMonth: 0,
             conversionRate: 0,
         }),
     },
@@ -33,7 +34,8 @@ defineProps({
                 <Snapshot
                     :leads-today="snapshot.leadsToday"
                     :clients-today="snapshot.clientsToday"
-                    :total-revenue="snapshot.totalRevenue"
+                    :revenue-today="snapshot.revenueToday"
+                    :revenue-this-month="snapshot.revenueThisMonth"
                     :conversion-rate="snapshot.conversionRate"
                 />
                 

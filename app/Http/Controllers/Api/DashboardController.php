@@ -19,6 +19,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $today = now()->startOfDay();
+        $startOfMonth = now()->startOfMonth();
 
         // Get today's leads
         $leadsToday = $this->getUserLeadsQuery($user)
@@ -31,14 +32,27 @@ class DashboardController extends Controller
             ->whereDate('won_at', $today)
             ->count();
 
-        // Get total revenue from won deals today
+        // Get total revenue from all won deals (all time)
         $totalRevenue = $this->getUserLeadsQuery($user)
+            ->where('is_client', true)
+            ->sum('value') ?? 0;
+
+        // Get revenue this month
+        $revenueThisMonth = $this->getUserLeadsQuery($user)
+            ->where('is_client', true)
+            ->where('won_at', '>=', $startOfMonth)
+            ->sum('value') ?? 0;
+
+        // Get revenue today
+        $revenueToday = $this->getUserLeadsQuery($user)
             ->where('is_client', true)
             ->whereDate('won_at', $today)
             ->sum('value') ?? 0;
 
-        // Calculate conversion rate
-        $conversionRate = $leadsToday > 0 ? ($clientsToday / $leadsToday) * 100 : 0;
+        // Calculate overall conversion rate (all time)
+        $totalLeadsAllTime = $this->getUserLeadsQuery($user)->count();
+        $totalClientsAllTime = $this->getUserLeadsQuery($user)->where('is_client', true)->count();
+        $conversionRate = $totalLeadsAllTime > 0 ? ($totalClientsAllTime / $totalLeadsAllTime) * 100 : 0;
 
         // Get tasks due today
         $tasksDueToday = $this->getUserTasksQuery($user)
@@ -55,6 +69,8 @@ class DashboardController extends Controller
                 'leadsToday' => $leadsToday,
                 'clientsToday' => $clientsToday,
                 'totalRevenue' => $totalRevenue,
+                'revenueThisMonth' => $revenueThisMonth,
+                'revenueToday' => $revenueToday,
                 'conversionRate' => round($conversionRate, 1),
             ],
             'tasks' => [
@@ -105,22 +121,44 @@ class DashboardController extends Controller
             ->where('is_client', true)
             ->count();
 
-        // Total revenue from all won deals
+        // Total revenue from all won deals (all time)
         $totalRevenue = $this->getUserLeadsQuery($user)
             ->where('is_client', true)
             ->sum('value') ?? 0;
+
+        // Revenue this month
+        $revenueThisMonth = $this->getUserLeadsQuery($user)
+            ->where('is_client', true)
+            ->whereMonth('won_at', now()->month)
+            ->whereYear('won_at', now()->year)
+            ->sum('value') ?? 0;
+
+        // Deals won this month
+        $dealsWonThisMonth = $this->getUserLeadsQuery($user)
+            ->where('is_client', true)
+            ->whereMonth('won_at', now()->month)
+            ->whereYear('won_at', now()->year)
+            ->count();
 
         // Active pipeline count
         $activePipeline = $this->getUserLeadsQuery($user)
             ->active()
             ->count();
 
+        // Pipeline value (sum of values for active leads)
+        $pipelineValue = $this->getUserLeadsQuery($user)
+            ->active()
+            ->sum('value') ?? 0;
+
         return response()->json([
             'leadsByStatus' => $leadsByStatus,
             'totalLeads' => $totalLeads,
             'totalClients' => $totalClients,
             'totalRevenue' => $totalRevenue,
+            'revenueThisMonth' => $revenueThisMonth,
+            'dealsWonThisMonth' => $dealsWonThisMonth,
             'activePipeline' => $activePipeline,
+            'pipelineValue' => $pipelineValue,
         ]);
     }
 
