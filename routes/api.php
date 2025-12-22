@@ -60,6 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Client Database APIs
     Route::prefix('clients')->group(function () {
         Route::get('/', [ClientController::class, 'index'])->name('api.clients.index');
+        Route::get('/stats', [ClientController::class, 'stats'])->name('api.clients.stats');
         Route::get('/{id}', [ClientController::class, 'show'])->name('api.clients.show');
         Route::put('/{id}', [ClientController::class, 'update'])->name('api.clients.update');
     });

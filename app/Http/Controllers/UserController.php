@@ -43,8 +43,15 @@ class UserController extends Controller
                 ];
             });
 
+        // Get managers for the dropdown (admins and managers can have team members)
+        $managers = User::whereIn('role', ['admin', 'manager'])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'role']);
+
         return Inertia::render('Users/Index', [
             'users' => $users,
+            'managers' => $managers,
         ]);
     }
 

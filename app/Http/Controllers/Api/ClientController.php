@@ -116,6 +116,63 @@ class ClientController extends Controller
     }
 
     /**
+     * Get stats for the clients page (specific to logged-in user based on their role).
+     */
+    public function stats(): JsonResponse
+    {
+        $user = Auth::user();
+        $query = $this->getAuthorizedLeadsQuery($user);
+
+        // Active clients (is_client = true, status = won)
+        $activeClients = (clone $query)
+            ->where('is_client', true)
+            ->where('status', 'won')
+            ->count();
+
+        // Paused/Lost clients (status = lost)
+        $pausedClients = (clone $query)
+            ->where('status', 'lost')
+            ->count();
+
+        // Completed - clients with actual_close_date set (deals that have been closed)
+        $completed = (clone $query)
+            ->where('is_client', true)
+            ->whereNotNull('actual_close_date')
+            ->count();
+
+        // Calculate average progress based on pipeline stages
+        // new_lead = 10%, initial_outreach = 25%, follow_ups = 50%, negotiations = 75%, won = 100%, lost = 0%
+        $statusWeights = [
+            'new_lead' => 10,
+            'initial_outreach' => 25,
+            'follow_ups' => 50,
+            'negotiations' => 75,
+            'won' => 100,
+            'lost' => 0,
+        ];
+
+        $leadsWithStatus = (clone $query)
+            ->whereNotNull('status')
+            ->get(['status']);
+
+        $totalProgress = 0;
+        $count = $leadsWithStatus->count();
+
+        foreach ($leadsWithStatus as $lead) {
+            $totalProgress += $statusWeights[$lead->status] ?? 0;
+        }
+
+        $avgProgress = $count > 0 ? round($totalProgress / $count) : 0;
+
+        return response()->json([
+            'avgProgress' => $avgProgress,
+            'activeClients' => $activeClients,
+            'pausedClients' => $pausedClients,
+            'completed' => $completed,
+        ]);
+    }
+
+    /**
      * Get authorized leads query based on user role (returns all leads, not just clients).
      */
     protected function getAuthorizedLeadsQuery($user)

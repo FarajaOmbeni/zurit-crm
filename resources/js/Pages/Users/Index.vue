@@ -1,16 +1,20 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 
-defineProps({
+const props = defineProps({
     users: {
         type: Array,
         required: true,
+    },
+    managers: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -22,6 +26,13 @@ const form = useForm({
     role: 'team_member',
     manager_id: null,
     is_active: true,
+});
+
+// Clear manager_id when role changes to non-team-member
+watch(() => form.role, (newRole) => {
+    if (newRole !== 'team_member') {
+        form.manager_id = null;
+    }
 });
 
 const submit = () => {
@@ -253,6 +264,22 @@ const resendOtp = (userId) => {
                                             <option value="admin">Admin</option>
                                         </select>
                                         <InputError class="mt-2" :message="form.errors.role" />
+                                    </div>
+
+                                    <!-- Manager (only for team members) -->
+                                    <div v-if="form.role === 'team_member'" class="mb-4">
+                                        <InputLabel for="manager_id" value="Assign to Manager" />
+                                        <select
+                                            id="manager_id"
+                                            v-model="form.manager_id"
+                                            class="mt-1 block w-full rounded-lg border-light-gray bg-light-gray px-4 py-3 font-body text-sm text-light-black focus:border-zurit-purple focus:ring-1 focus:ring-zurit-purple focus:outline-none transition-colors"
+                                        >
+                                            <option :value="null">No Manager</option>
+                                            <option v-for="manager in props.managers" :key="manager.id" :value="manager.id">
+                                                {{ manager.name }} ({{ manager.role === 'admin' ? 'Admin' : 'Manager' }})
+                                            </option>
+                                        </select>
+                                        <InputError class="mt-2" :message="form.errors.manager_id" />
                                     </div>
 
                                     <!-- Is Active -->

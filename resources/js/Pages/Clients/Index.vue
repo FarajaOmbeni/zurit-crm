@@ -28,6 +28,23 @@ const selectedClient = ref(null);
 const startInEditMode = ref(false);
 let loadingTimeout = null;
 
+// Stats for the header (specific to logged-in user)
+const stats = ref({
+    avgProgress: 0,
+    activeClients: 0,
+    pausedClients: 0,
+    completed: 0,
+});
+
+const fetchStats = async () => {
+    try {
+        const response = await window.axios.get('/api/clients/stats');
+        stats.value = response.data;
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+    }
+};
+
 const fetchClients = async (search = '', page = 1) => {
     loading.value = true;
     showEmptyState.value = false;
@@ -92,6 +109,7 @@ const fetchClients = async (search = '', page = 1) => {
 
 onMounted(() => {
     fetchClients();
+    fetchStats();
 });
 
 const handleExport = async () => {
@@ -359,7 +377,7 @@ const closeModal = () => {
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <ClientsHeader title="Client Database"
                     subtitle="Help clients build sustainable wealth through strategic financial guidance"
-                    :avg-progress="75" :active-clients="8" :paused-clients="3" :completed="5"
+                    :avg-progress="stats.avgProgress" :active-clients="stats.activeClients" :paused-clients="stats.pausedClients" :completed="stats.completed"
                     :company-sort-order="sortOrder" @export="handleExport" @add-lead="handleAddLead"
                     @search="handleSearch" @filter="handleFilter" @sort="handleSort" />
 
