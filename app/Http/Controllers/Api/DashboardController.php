@@ -3,80 +3,56 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Activity;
 use App\Models\Lead;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     /**
-     * Get daily overview and quick stats.
+     * Get dashboard overview data.
      */
     public function overview(Request $request): JsonResponse
     {
         $user = Auth::user();
+        $authorizedLeadIds = $this->getAuthorizedLeadIds($user);
         $today = now()->startOfDay();
         $startOfMonth = now()->startOfMonth();
 
-        // Get today's leads
-        $leadsToday = $this->getUserLeadsQuery($user)
+        // Leads created today
+        $leadsToday = Lead::whereIn('id', $authorizedLeadIds)
             ->whereDate('created_at', $today)
             ->count();
 
-        // Get today's clients (won leads)
-        $clientsToday = $this->getUserLeadsQuery($user)
-            ->where('is_client', true)
+        // Clients won today
+        $clientsToday = DB::table('lead_product')
+            ->whereIn('lead_id', $authorizedLeadIds)
+            ->where('status', 'won')
             ->whereDate('won_at', $today)
             ->count();
 
-        // Get total revenue from all won deals (all time)
-        $totalRevenue = $this->getUserLeadsQuery($user)
-            ->where('is_client', true)
+        // Revenue today
+        $revenueToday = DB::table('lead_product')
+            ->whereIn('lead_id', $authorizedLeadIds)
+            ->where('status', 'won')
+            ->whereDate('won_at', $today)
             ->sum('value') ?? 0;
 
-        // Get revenue this month
-        $revenueThisMonth = $this->getUserLeadsQuery($user)
-            ->where('is_client', true)
+        // Revenue this month
+        $revenueThisMonth = DB::table('lead_product')
+            ->whereIn('lead_id', $authorizedLeadIds)
+            ->where('status', 'won')
             ->where('won_at', '>=', $startOfMonth)
             ->sum('value') ?? 0;
 
-        // Get revenue today
-        $revenueToday = $this->getUserLeadsQuery($user)
-            ->where('is_client', true)
-            ->whereDate('won_at', $today)
-            ->sum('value') ?? 0;
-
-        // Calculate overall conversion rate (all time)
-        $totalLeadsAllTime = $this->getUserLeadsQuery($user)->count();
-        $totalClientsAllTime = $this->getUserLeadsQuery($user)->where('is_client', true)->count();
-        $conversionRate = $totalLeadsAllTime > 0 ? ($totalClientsAllTime / $totalLeadsAllTime) * 100 : 0;
-
-        // Get tasks due today
-        $tasksDueToday = $this->getUserTasksQuery($user)
-            ->dueToday()
-            ->count();
-
-        // Get overdue tasks
-        $overdueTasks = $this->getUserTasksQuery($user)
-            ->overdue()
-            ->count();
-
         return response()->json([
-            'snapshot' => [
-                'leadsToday' => $leadsToday,
-                'clientsToday' => $clientsToday,
-                'totalRevenue' => $totalRevenue,
-                'revenueThisMonth' => $revenueThisMonth,
-                'revenueToday' => $revenueToday,
-                'conversionRate' => round($conversionRate, 1),
-            ],
-            'tasks' => [
-                'dueToday' => $tasksDueToday,
-                'overdue' => $overdueTasks,
-            ],
+            'leadsToday' => $leadsToday,
+            'clientsToday' => $clientsToday,
+            'revenueToday' => $revenueToday,
+            'revenueThisMonth' => $revenueThisMonth,
         ]);
     }
 
@@ -86,11 +62,23 @@ class DashboardController extends Controller
     public function tasksDueToday(Request $request): JsonResponse
     {
         $user = Auth::user();
+        $today = now()->toDateString();
 
-        $tasks = $this->getUserTasksQuery($user)
-            ->dueToday()
-            ->with(['lead', 'createdBy'])
-            ->get();
+        $query = Task::with(['lead', 'createdBy'])
+            ->whereDate('due_date', $today)
+            ->where('status', '!=', 'completed');
+
+        // Filter by user role
+        if (!$user->isAdmin()) {
+            if ($user->isManager()) {
+                $teamMemberIds = $user->teamMembers()->pluck('id')->push($user->id);
+                $query->whereIn('created_by', $teamMemberIds);
+            } else {
+                $query->where('created_by', $user->id);
+            }
+        }
+
+        $tasks = $query->orderBy('due_date')->limit(10)->get();
 
         return response()->json([
             'tasks' => $tasks,
@@ -98,119 +86,76 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get quick stats for dashboard.
+     * Get dashboard statistics.
      */
     public function stats(Request $request): JsonResponse
     {
         $user = Auth::user();
+        $authorizedLeadIds = $this->getAuthorizedLeadIds($user);
 
-        // Lead counts by status
-        $leadsByStatus = $this->getUserLeadsQuery($user)
-            ->selectRaw('status, count(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
-
-        // Total leads (excluding clients)
-        $totalLeads = $this->getUserLeadsQuery($user)
-            ->where('is_client', false)
-            ->count();
+        // Total leads
+        $totalLeads = Lead::whereIn('id', $authorizedLeadIds)->count();
 
         // Total clients
-        $totalClients = $this->getUserLeadsQuery($user)
+        $totalClients = Lead::whereIn('id', $authorizedLeadIds)
             ->where('is_client', true)
             ->count();
 
-        // Total revenue from all won deals (all time)
-        $totalRevenue = $this->getUserLeadsQuery($user)
-            ->where('is_client', true)
-            ->sum('value') ?? 0;
-
-        // Revenue this month
-        $revenueThisMonth = $this->getUserLeadsQuery($user)
-            ->where('is_client', true)
-            ->whereMonth('won_at', now()->month)
-            ->whereYear('won_at', now()->year)
-            ->sum('value') ?? 0;
-
-        // Deals won this month
-        $dealsWonThisMonth = $this->getUserLeadsQuery($user)
-            ->where('is_client', true)
-            ->whereMonth('won_at', now()->month)
-            ->whereYear('won_at', now()->year)
-            ->count();
-
-        // Active pipeline count
-        $activePipeline = $this->getUserLeadsQuery($user)
-            ->active()
-            ->count();
-
-        // Pipeline value (sum of values for active leads)
-        $pipelineValue = $this->getUserLeadsQuery($user)
-            ->active()
-            ->sum('value') ?? 0;
+        // Conversion rate
+        $conversionRate = $totalLeads > 0 ? ($totalClients / $totalLeads) * 100 : 0;
 
         return response()->json([
-            'leadsByStatus' => $leadsByStatus,
             'totalLeads' => $totalLeads,
             'totalClients' => $totalClients,
-            'totalRevenue' => $totalRevenue,
-            'revenueThisMonth' => $revenueThisMonth,
-            'dealsWonThisMonth' => $dealsWonThisMonth,
-            'activePipeline' => $activePipeline,
-            'pipelineValue' => $pipelineValue,
+            'conversionRate' => round($conversionRate, 1),
         ]);
     }
 
     /**
-     * Get leads query based on user role.
+     * Get products by purchase (won deals grouped by product).
      */
-    protected function getUserLeadsQuery($user)
+    public function productsByPurchase(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        $authorizedLeadIds = $this->getAuthorizedLeadIds($user);
+
+        // Get won deals grouped by product from pivot table
+        $products = DB::table('lead_product')
+            ->join('products', 'lead_product.product_id', '=', 'products.id')
+            ->whereIn('lead_product.lead_id', $authorizedLeadIds)
+            ->where('lead_product.status', 'won')
+            ->select(
+                'products.id',
+                'products.name',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(lead_product.value) as total_value')
+            )
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('count')
+            ->limit(5)
+            ->get();
+
+        return response()->json([
+            'products' => $products,
+        ]);
+    }
+
+    /**
+     * Get authorized lead IDs based on user role.
+     */
+    protected function getAuthorizedLeadIds($user)
     {
         $query = Lead::query();
 
         if ($user->isAdmin()) {
-            // Admin sees all leads
-            return $query;
+            return $query->pluck('id');
         }
 
         if ($user->isManager()) {
-            // Manager sees their leads and team members' leads
             $teamMemberIds = $user->teamMembers()->pluck('id');
-            return $query->whereIn('added_by', $teamMemberIds->push($user->id));
+            return $query->whereIn('added_by', $teamMemberIds->push($user->id))->pluck('id');
         }
 
-        // Team member sees only their own leads
-        return $query->where('added_by', $user->id);
-    }
-
-    /**
-     * Get tasks query based on user role.
-     */
-    protected function getUserTasksQuery($user)
-    {
-        $query = Task::query();
-
-        if ($user->isAdmin()) {
-            // Admin sees all tasks
-            return $query;
-        }
-
-        if ($user->isManager()) {
-            // Manager sees tasks for their leads and team members' leads
-            $teamMemberIds = $user->teamMembers()->pluck('id');
-            $leadIds = Lead::whereIn('added_by', $teamMemberIds->push($user->id))->pluck('id');
-            return $query->where(function ($q) use ($user, $teamMemberIds, $leadIds) {
-                $q->whereIn('created_by', $teamMemberIds->push($user->id))
-                    ->orWhereIn('lead_id', $leadIds);
-            });
-        }
-
-        // Team member sees their own tasks or tasks for their leads
-        $leadIds = Lead::where('added_by', $user->id)->pluck('id');
-        return $query->where(function ($q) use ($user, $leadIds) {
-            $q->where('created_by', $user->id)
-                ->orWhereIn('lead_id', $leadIds);
-        });
+        return $query->where('added_by', $user->id)->pluck('id');
     }
 }

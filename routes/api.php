@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/overview', [DashboardController::class, 'overview'])->name('api.dashboard.overview');
         Route::get('/tasks-due-today', [DashboardController::class, 'tasksDueToday'])->name('api.dashboard.tasks-due-today');
         Route::get('/stats', [DashboardController::class, 'stats'])->name('api.dashboard.stats');
+        Route::get('/products-by-purchase', [DashboardController::class, 'productsByPurchase'])->name('api.dashboard.products-by-purchase');
     });
 
     // Leads & Pipeline APIs

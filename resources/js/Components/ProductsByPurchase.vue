@@ -21,26 +21,14 @@ const getPercentage = (count) => {
 const fetchProductsData = async () => {
     try {
         loading.value = true;
-        const response = await axios.get('/api/leads', {
-            params: {
-                status: 'won',
-                include_clients: true,
-                per_page: 1000
-            }
-        });
+        const response = await axios.get('/api/dashboard/products-by-purchase');
 
-        // Group by product
-        const productCounts = response.data.data.reduce((acc, lead) => {
-            const product = lead.product || 'Unknown';
-            acc[product] = (acc[product] || 0) + 1;
-            return acc;
-        }, {});
-
-        // Convert to array and sort by count (descending)
-        products.value = Object.entries(productCounts)
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 5); // Show top 5 products
+        // Map the response to the expected format
+        products.value = response.data.products.map(p => ({
+            name: p.name,
+            count: p.count,
+            totalValue: p.total_value
+        }));
 
     } catch (error) {
         console.error('Error fetching products data:', error);
