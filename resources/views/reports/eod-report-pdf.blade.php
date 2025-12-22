@@ -153,15 +153,11 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <h1>Zurit CRM</h1>
-        <div class="subtitle">Sales Report</div>
+        <h1>Zurit Consulting - {{ $report->user->name ?? 'Unknown' }} Report</h1>
         <div class="date">{{ $report->report_date->format('l, F j, Y') }}</div>
         <div class="subtitle" style="margin-top: 10px;">
             Generated: {{ $report->created_at->format('M d, Y \a\t g:i A') }}
         </div>
-        @if($report->user)
-        <div class="subtitle">Prepared by: {{ $report->user->name }}</div>
-        @endif
     </div>
 
     <!-- Outreach Summary -->
@@ -169,113 +165,117 @@
         <div class="section-title">Outreach Summary</div>
         <div class="text-content">
             <p style="font-size: 14px; font-weight: bold; margin-bottom: 10px;">
-                Leads Contacted: <span style="color: #7639C2;">{{ $outreachSummary['total_contacted'] ?? 0 }}</span>
+                Total Leads Contacted: <span style="color: #7639C2;">{{ $outreachSummary['total_contacted'] ?? 0 }}</span>
             </p>
             @if(isset($outreachSummary['contacted_leads']) && count($outreachSummary['contacted_leads']) > 0)
-                <ul style="list-style-type: none; padding-left: 15px; margin-top: 10px;">
+                <p style="font-weight: bold; margin-top: 15px; margin-bottom: 5px; color: #2E2E2E;">Leads Contacted:</p>
+                <ul style="list-style-type: disc; padding-left: 25px; margin-top: 5px;">
                     @foreach($outreachSummary['contacted_leads'] as $lead)
-                        <li style="margin-bottom: 5px;">- {{ $lead['display_name'] }}</li>
+                        <li style="margin-bottom: 3px;">{{ $lead['display_name'] }}</li>
                     @endforeach
                 </ul>
             @else
-                <p style="font-style: italic; color: #6B6B6B; margin-top: 10px;">No leads contacted</p>
+                <p style="font-style: italic; color: #6B6B6B; margin-top: 10px;">No leads contacted during this period.</p>
             @endif
         </div>
     </div>
 
-    <!-- Won Deals -->
+    <!-- Scheme Engagement Updates -->
     <div class="section">
-        <div class="section-title">Won Deals ({{ count($wonDeals) }})</div>
+        <div class="section-title">Scheme Engagement Updates</div>
+        @if(isset($engagementUpdates) && count($engagementUpdates) > 0)
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 30%;">Contact Person</th>
+                    <th style="width: 25%;">Phone Number</th>
+                    <th style="width: 45%;">Feedback</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($engagementUpdates as $update)
+                <tr>
+                    <td>{{ $update['contact_person'] ?? 'N/A' }}</td>
+                    <td>{{ $update['phone'] ?? 'N/A' }}</td>
+                    <td>{{ $update['feedback'] ?? 'No feedback provided' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @else
+        <div class="no-data">No engagement updates for this period.</div>
+        @endif
+    </div>
+
+    <!-- Program Sales Update -->
+    <div class="section">
+        <div class="section-title">Program Sales Update</div>
         @if(count($wonDeals) > 0)
         <table>
             <thead>
                 <tr>
-                    <th>Company</th>
-                    <th>Value (KES)</th>
-                    <th>Product</th>
-                    <th>Date Won</th>
+                    <th style="width: 40%;">Client/Lead Name</th>
+                    <th style="width: 35%;">Product</th>
+                    <th style="width: 25%;">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($wonDeals as $deal)
                 <tr>
-                    <td>{{ $deal['company'] ?? 'N/A' }}</td>
-                    <td>{{ number_format($deal['value'] ?? 0, 2) }}</td>
-                    <td>{{ $deal['product'] ?? 'N/A' }}</td>
-                    <td>{{ isset($deal['won_at']) ? \Carbon\Carbon::parse($deal['won_at'])->format('M d, Y') : 'N/A' }}</td>
+                    <td>{{ $deal['client_name'] ?? $deal['company'] ?? 'N/A' }}</td>
+                    <td>{{ $deal['product_name'] ?? $deal['product'] ?? 'N/A' }}</td>
+                    <td><strong>Ksh {{ number_format($deal['amount'] ?? $deal['value'] ?? 0, 2) }}</strong></td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
+        <div style="margin-top: 15px; padding: 10px; background-color: #F5F3F7; text-align: right;">
+            <strong style="color: #7639C2; font-size: 14px;">
+                Total Sales: Ksh {{ number_format(array_sum(array_map(function($deal) { return $deal['amount'] ?? $deal['value'] ?? 0; }, $wonDeals)), 2) }}
+            </strong>
+        </div>
         @else
-        <div class="no-data">No won deals for this period.</div>
+        <div class="no-data">No program sales for this period.</div>
         @endif
     </div>
-
-    <!-- New Leads -->
-    <div class="section">
-        <div class="section-title">New Leads ({{ count($newLeads) }})</div>
-        @if(count($newLeads) > 0)
-        <table>
-            <thead>
-                <tr>
-                    <th>Company</th>
-                    <th>Source</th>
-                    <th>Status</th>
-                    <th>Expected Close</th>
-                    <th>Value (KES)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($newLeads as $lead)
-                <tr>
-                    <td>{{ $lead['company'] ?? 'N/A' }}</td>
-                    <td>{{ $lead['source'] ?? 'N/A' }}</td>
-                    <td>{{ ucwords(str_replace('_', ' ', $lead['status'] ?? 'N/A')) }}</td>
-                    <td>{{ isset($lead['expected_close_date']) ? \Carbon\Carbon::parse($lead['expected_close_date'])->format('M d, Y') : 'N/A' }}</td>
-                    <td>{{ isset($lead['value']) ? number_format($lead['value'], 2) : 'N/A' }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-        @else
-        <div class="no-data">No new leads for this period.</div>
-        @endif
-    </div>
-
-    <!-- Lost Deals -->
-    @if(count($lostDeals) > 0)
-    <div class="section">
-        <div class="section-title">Lost Deals ({{ count($lostDeals) }})</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Company</th>
-                    <th>Reason</th>
-                    <th>Value (KES)</th>
-                    <th>Date Lost</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($lostDeals as $deal)
-                <tr>
-                    <td>{{ $deal['company'] ?? 'N/A' }}</td>
-                    <td>{{ $deal['reason'] ?? 'Not specified' }}</td>
-                    <td>{{ isset($deal['value']) ? number_format($deal['value'], 2) : 'N/A' }}</td>
-                    <td>{{ isset($deal['lost_at']) ? \Carbon\Carbon::parse($deal['lost_at'])->format('M d, Y') : 'N/A' }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-    @endif
 
     <!-- Key Reminders -->
+    @if((isset($upcomingTasks) && count($upcomingTasks) > 0) || (isset($overdueTasks) && count($overdueTasks) > 0))
     <div class="section">
         <div class="section-title">Key Reminders</div>
-        
-        @if(count($upcomingTasks) > 0)
+
+        @if(isset($overdueTasks) && count($overdueTasks) > 0)
         <div style="margin-bottom: 15px;">
+            <strong style="color: #FF5B5D; font-size: 13px;">Overdue Tasks ({{ count($overdueTasks) }})</strong>
+            <table style="margin-top: 5px;">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Due Date</th>
+                        <th>Priority</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($overdueTasks as $task)
+                    <tr>
+                        <td>{{ $task['title'] ?? 'N/A' }}</td>
+                        <td style="color: #FF5B5D; font-weight: bold;">
+                            {{ isset($task['due_date']) ? \Carbon\Carbon::parse($task['due_date'])->format('M d, Y') : 'N/A' }}
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ $task['priority'] ?? 'low' }}">
+                                {{ ucfirst($task['priority'] ?? 'Low') }}
+                            </span>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
+
+        @if(isset($upcomingTasks) && count($upcomingTasks) > 0)
+        <div>
             <strong style="color: #7639C2; font-size: 13px;">Upcoming Tasks ({{ count($upcomingTasks) }})</strong>
             <table style="margin-top: 5px;">
                 <thead>
@@ -283,7 +283,6 @@
                         <th>Task</th>
                         <th>Due Date</th>
                         <th>Priority</th>
-                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -296,79 +295,19 @@
                                 {{ ucfirst($task['priority'] ?? 'Low') }}
                             </span>
                         </td>
-                        <td>
-                            <span class="badge badge-{{ $task['status'] ?? 'pending' }}">
-                                {{ ucfirst($task['status'] ?? 'Pending') }}
-                            </span>
-                        </td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
         @endif
-
-        @if(count($overdueTasks) > 0)
-        <div>
-            <strong style="color: #FF5B5D; font-size: 13px;">Overdue Tasks ({{ count($overdueTasks) }})</strong>
-            <table style="margin-top: 5px;">
-                <thead>
-                    <tr>
-                        <th>Task</th>
-                        <th>Due Date</th>
-                        <th>Priority</th>
-                        <th>Days Overdue</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($overdueTasks as $task)
-                    <tr>
-                        <td>{{ $task['title'] ?? 'N/A' }}</td>
-                        <td>{{ isset($task['due_date']) ? \Carbon\Carbon::parse($task['due_date'])->format('M d, Y') : 'N/A' }}</td>
-                        <td>
-                            <span class="badge badge-{{ $task['priority'] ?? 'low' }}">
-                                {{ ucfirst($task['priority'] ?? 'Low') }}
-                            </span>
-                        </td>
-                        <td style="color: #FF5B5D; font-weight: bold;">
-                            {{ isset($task['due_date']) ? \Carbon\Carbon::parse($task['due_date'])->diffInDays(now()) : 'N/A' }}
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        @endif
-
-        @if(count($upcomingTasks) === 0 && count($overdueTasks) === 0)
-        <div class="no-data">No pending tasks.</div>
-        @endif
-    </div>
-
-    <!-- Highlights -->
-    @if($highlights)
-    <div class="section">
-        <div class="section-title">Highlights</div>
-        <div class="text-content">
-            <p>{{ $highlights }}</p>
-        </div>
-    </div>
-    @endif
-
-    <!-- Challenges -->
-    @if($challenges)
-    <div class="section">
-        <div class="section-title">Challenges</div>
-        <div class="text-content">
-            <p>{{ $challenges }}</p>
-        </div>
     </div>
     @endif
 
     <!-- Footer -->
     <div class="footer">
-        <p>This report was automatically generated by Zurit CRM</p>
-        <p>© {{ date('Y') }} Zurit CRM. All rights reserved.</p>
+        <p>This report was automatically generated by Zurit Consulting CRM</p>
+        <p>© {{ date('Y') }} Zurit Consulting. All rights reserved.</p>
     </div>
 </body>
 </html>
