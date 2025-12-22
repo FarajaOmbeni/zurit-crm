@@ -118,7 +118,27 @@ const handleSubmit = async () => {
     } catch (error) {
         console.error('Error adding lead:', error);
         if (error.response?.data?.errors) {
-            errors.value = error.response.data.errors;
+            // Map backend field names to frontend field names
+            const backendErrors = error.response.data.errors;
+            const mappedErrors = {};
+
+            for (const [key, value] of Object.entries(backendErrors)) {
+                // Map 'email' to 'contact_email' and 'phone' to 'contact_phone'
+                if (key === 'email') {
+                    mappedErrors.contact_email = Array.isArray(value) ? value[0] : value;
+                } else if (key === 'phone') {
+                    mappedErrors.contact_phone = Array.isArray(value) ? value[0] : value;
+                } else {
+                    mappedErrors[key] = Array.isArray(value) ? value[0] : value;
+                }
+            }
+
+            errors.value = mappedErrors;
+
+            // Also show a general error message for duplicates
+            if (error.response?.data?.message) {
+                errors.value.submit = error.response.data.message;
+            }
         } else {
             errors.value.submit = error.response?.data?.message || 'Failed to add lead. Please try again.';
         }
