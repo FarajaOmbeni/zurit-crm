@@ -175,6 +175,33 @@ const handleClose = () => {
 const triggerFileInput = () => {
     fileInput.value?.click();
 };
+
+const exportTemplate = () => {
+    // Get all columns (required + optional)
+    const allColumns = [...expectedColumns.value.required, ...expectedColumns.value.optional];
+
+    // Create CSV content with headers only
+    const csvContent = allColumns.join(',') + '\n';
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    const filename = isPersonal.value
+        ? 'personal_contacts_template.csv'
+        : 'company_leads_template.csv';
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+};
 </script>
 
 <template>
@@ -212,7 +239,20 @@ const triggerFileInput = () => {
 
             <!-- Expected Columns Info -->
             <div class="mb-4 rounded-lg bg-gray-50 border border-gray-200 p-4">
-                <h4 class="font-body text-sm font-medium text-light-black mb-2">Expected CSV Columns:</h4>
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-body text-sm font-medium text-light-black">Expected CSV Columns:</h4>
+                    <button
+                        @click="exportTemplate"
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-zurit-purple bg-white px-3 py-1.5 font-body text-xs font-medium text-zurit-purple transition-colors hover:bg-zurit-purple/5 focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2"
+                    >
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Download Template
+                    </button>
+                </div>
                 <div class="flex flex-wrap gap-2">
                     <span v-for="col in expectedColumns.required" :key="col"
                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
