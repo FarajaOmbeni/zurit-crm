@@ -12,8 +12,10 @@ const sortBy = ref('due_date');
 const sortOrder = ref('asc');
 const activeTab = ref('all');
 const showAddModal = ref(false);
+const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const taskToDelete = ref(null);
+const taskToEdit = ref(null);
 const deleting = ref(false);
 
 // Pagination
@@ -42,6 +44,18 @@ const newTask = ref({
 const leads = ref([]);
 const submitting = ref(false);
 const formErrors = ref({});
+
+// Edit task form
+const editForm = ref({
+    title: '',
+    description: '',
+    type: 'other',
+    priority: 'medium',
+    due_date: '',
+    lead_id: null,
+});
+const editFormErrors = ref({});
+const updating = ref(false);
 
 // Fetch tasks
 const fetchTasks = async () => {
@@ -186,6 +200,60 @@ const resetForm = () => {
     formErrors.value = {};
 };
 
+// Open edit modal and populate form
+const openEditModal = (task) => {
+    taskToEdit.value = task;
+    editForm.value = {
+        title: task.title || '',
+        description: task.description || '',
+        type: task.type || 'other',
+        priority: task.priority || 'medium',
+        due_date: task.due_date ? task.due_date.split('T')[0] : '',
+        lead_id: task.lead_id || null,
+    };
+    editFormErrors.value = {};
+    fetchLeads();
+    showEditModal.value = true;
+};
+
+// Update task
+const updateTask = async () => {
+    if (!taskToEdit.value) return;
+
+    editFormErrors.value = {};
+    updating.value = true;
+
+    try {
+        await axios.put(`/api/tasks/${taskToEdit.value.id}`, editForm.value);
+        showEditModal.value = false;
+        taskToEdit.value = null;
+        resetEditForm();
+        fetchTasks();
+        fetchStats();
+    } catch (error) {
+        if (error.response?.data?.errors) {
+            editFormErrors.value = error.response.data.errors;
+        }
+        console.error('Error updating task:', error);
+    } finally {
+        updating.value = false;
+    }
+};
+
+// Reset edit form
+const resetEditForm = () => {
+    editForm.value = {
+        title: '',
+        description: '',
+        type: 'other',
+        priority: 'medium',
+        due_date: '',
+        lead_id: null,
+    };
+    editFormErrors.value = {};
+    taskToEdit.value = null;
+};
+
 // Helpers
 const getLeadDisplayName = (lead) => {
     if (!lead) return '';
@@ -316,8 +384,8 @@ const openAddModal = () => {
 };
 
 // Lock body scroll when modal is open
-watch([showAddModal, showDeleteModal], ([addOpen, deleteOpen]) => {
-    if (addOpen || deleteOpen) {
+watch([showAddModal, showEditModal, showDeleteModal], ([addOpen, editOpen, deleteOpen]) => {
+    if (addOpen || editOpen || deleteOpen) {
         document.body.style.overflow = 'hidden';
     } else {
         document.body.style.overflow = '';
@@ -600,6 +668,17 @@ onMounted(() => {
                                         </svg>
                                     </button>
 
+                                    <!-- Edit Button -->
+                                    <button
+                                        @click="openEditModal(task)"
+                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-white text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                        title="Edit task"
+                                    >
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+
                                     <!-- Delete Button -->
                                     <button
                                         @click="confirmDelete(task)"
@@ -703,8 +782,17 @@ onMounted(() => {
                 @click.stop
             >
                 <!-- Modal Header -->
-                <div class="p-6 border-b border-gray-200">
+                <div class="p-6 border-b border-gray-200 flex items-center justify-between">
                     <h3 class="font-heading text-2xl font-semibold text-light-black">Create New Task</h3>
+                    <button
+                        type="button"
+                        @click="showAddModal = false"
+                        class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                    >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
                 <!-- Modal Body -->
@@ -773,6 +861,36 @@ onMounted(() => {
                         <p v-if="formErrors.due_date" class="mt-1 text-sm text-red-500">{{ formErrors.due_date[0] }}</p>
                     </div>
 
+                    <!-- Priority -->
+                    <div>
+                        <label class="block font-body text-sm font-medium text-light-black mb-2">Priority</label>
+                        <select
+                            v-model="newTask.priority"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                        >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                        <p v-if="formErrors.priority" class="mt-1 text-sm text-red-500">{{ formErrors.priority[0] }}</p>
+                    </div>
+
+                    <!-- Type -->
+                    <div>
+                        <label class="block font-body text-sm font-medium text-light-black mb-2">Type</label>
+                        <select
+                            v-model="newTask.type"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                        >
+                            <option value="call">Call</option>
+                            <option value="email">Email</option>
+                            <option value="meeting">Meeting</option>
+                            <option value="follow_up">Follow Up</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <p v-if="formErrors.type" class="mt-1 text-sm text-red-500">{{ formErrors.type[0] }}</p>
+                    </div>
+
                     <!-- Action Buttons -->
                     <div class="flex items-center gap-3 pt-4">
                         <button
@@ -788,10 +906,146 @@ onMounted(() => {
                         </button>
                         <button
                             type="button"
-                            @click="resetForm"
+                            @click="showAddModal = false"
                             class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 font-body text-sm font-medium text-light-black hover:bg-gray-50 transition-colors"
                         >
-                            Clear
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Task Modal -->
+        <div
+            v-if="showEditModal"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+            @click="showEditModal = false"
+        >
+            <div
+                class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden"
+                @click.stop
+            >
+                <!-- Modal Header -->
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="font-heading text-2xl font-semibold text-light-black">Edit Task</h3>
+                </div>
+
+                <!-- Modal Body -->
+                <form @submit.prevent="updateTask" class="p-6 space-y-5">
+                    <!-- Task Title -->
+                    <div>
+                        <label class="block font-body text-sm font-medium text-light-black mb-2">Task Title *</label>
+                        <input
+                            v-model="editForm.title"
+                            type="text"
+                            placeholder="What needs to be done?"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                        />
+                        <p v-if="editFormErrors.title" class="mt-1 text-sm text-red-500">{{ editFormErrors.title[0] }}</p>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block font-body text-sm font-medium text-light-black mb-2">Description</label>
+                        <textarea
+                            v-model="editForm.description"
+                            rows="4"
+                            placeholder="Provide more details about this task..."
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple resize-none"
+                        ></textarea>
+                    </div>
+
+                    <!-- Lead/Client Selection -->
+                    <div>
+                        <label class="block font-body text-sm font-medium text-light-black mb-2">
+                            Lead/Client
+                            <span class="text-xs text-zurit-gray font-normal ml-1">(Optional - leave empty for internal tasks)</span>
+                        </label>
+                        <select
+                            v-model="editForm.lead_id"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                        >
+                            <option :value="null">Select a lead/client (or leave as internal task)</option>
+                            <option
+                                v-for="lead in leads"
+                                :key="lead.id"
+                                :value="lead.id"
+                            >
+                                {{ getLeadDisplayName(lead) }}
+                            </option>
+                        </select>
+                        <p v-if="editFormErrors.lead_id" class="mt-1 text-sm text-red-500">{{ editFormErrors.lead_id[0] }}</p>
+                    </div>
+
+                    <!-- Due Date -->
+                    <div>
+                        <label class="block font-body text-sm font-medium text-light-black mb-2">Due Date *</label>
+                        <div class="relative">
+                            <input
+                                v-model="editForm.due_date"
+                                type="date"
+                                placeholder="dd/mm/yyyy"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                            />
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p v-if="editFormErrors.due_date" class="mt-1 text-sm text-red-500">{{ editFormErrors.due_date[0] }}</p>
+                    </div>
+
+                    <!-- Priority -->
+                    <div>
+                        <label class="block font-body text-sm font-medium text-light-black mb-2">Priority</label>
+                        <select
+                            v-model="editForm.priority"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                        >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                        <p v-if="editFormErrors.priority" class="mt-1 text-sm text-red-500">{{ editFormErrors.priority[0] }}</p>
+                    </div>
+
+                    <!-- Type -->
+                    <div>
+                        <label class="block font-body text-sm font-medium text-light-black mb-2">Type</label>
+                        <select
+                            v-model="editForm.type"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                        >
+                            <option value="call">Call</option>
+                            <option value="email">Email</option>
+                            <option value="meeting">Meeting</option>
+                            <option value="follow_up">Follow Up</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <p v-if="editFormErrors.type" class="mt-1 text-sm text-red-500">{{ editFormErrors.type[0] }}</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-3 pt-4">
+                        <button
+                            type="submit"
+                            :disabled="updating"
+                            class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-zurit-purple px-4 py-3 font-body text-sm font-medium text-white hover:bg-zurit-purple/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span v-if="updating">Updating...</span>
+                            <span v-else>Update Task</span>
+                        </button>
+                        <button
+                            type="button"
+                            @click="showEditModal = false"
+                            class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 font-body text-sm font-medium text-light-black hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
                         </button>
                     </div>
                 </form>
