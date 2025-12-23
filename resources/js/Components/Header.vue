@@ -187,6 +187,9 @@ const handlePipelineMouseLeave = () => {
                             <DropdownLink v-if="isAdmin || isManager" :href="route('users.index')">
                                 {{ isAdmin ? 'Manage Users' : 'My Team' }}
                             </DropdownLink>
+                            <DropdownLink v-if="isAdmin || isManager" :href="route('products.index')">
+                                Manage Products
+                            </DropdownLink>
                             <DropdownLink :href="route('profile.edit')">
                                 Settings
                             </DropdownLink>

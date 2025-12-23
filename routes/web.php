@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PipelineController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductSelectionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -45,6 +46,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::post('/users/{user}/resend-otp', [UserController::class, 'resendOtp'])->name('users.resend-otp');
+
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 });
 
 Route::middleware('auth')->group(function () {
