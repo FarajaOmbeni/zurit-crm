@@ -6,6 +6,7 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import Alert from '@/Components/Alert.vue';
 import ReassignLeadModal from '@/Components/ReassignLeadModal.vue';
+import LocationSelect from '@/Components/LocationSelect.vue';
 import { ref, watch, computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 
@@ -504,17 +505,13 @@ const submit = async () => {
                         <InputError v-if="errors.phone" :message="errors.phone[0]" />
                     </div>
 
-                    <!-- City -->
+                    <!-- Country & City -->
                     <div>
-                        <InputLabel for="city" value="City" />
-                        <TextInput id="city" v-model="form.city" type="text" class="mt-1 block w-full" />
+                        <LocationSelect
+                            v-model:country="form.country"
+                            v-model:city="form.city"
+                        />
                         <InputError v-if="errors.city" :message="errors.city[0]" />
-                    </div>
-
-                    <!-- Country -->
-                    <div>
-                        <InputLabel for="country" value="Country" />
-                        <TextInput id="country" v-model="form.country" type="text" class="mt-1 block w-full" />
                         <InputError v-if="errors.country" :message="errors.country[0]" />
                     </div>
 

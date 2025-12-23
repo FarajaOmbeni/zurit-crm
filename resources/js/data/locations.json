@@ -1,0 +1,256 @@
+{
+  "countries": [
+    {
+      "name": "Kenya",
+      "cities": ["Athi River", "Bondo", "Bomet", "Bungoma", "Busia", "Butere", "Chogoria", "Chuka", "Dadaab", "Diani", "El Wak", "Eldama Ravine", "Eldoret", "Embu", "Garissa", "Gatundu", "Gilgil", "Habaswein", "Homa Bay", "Isebania", "Isiolo", "Iten", "Juja", "Kabarnet", "Kakamega", "Kakuma", "Kaloleni", "Kangema", "Kapenguria", "Kapkatet", "Kapsabet", "Karatina", "Kehancha", "Kendu Bay", "Kericho", "Keroka", "Kerugoya", "Khayega", "Kiambu", "Kigumo", "Kikuyu", "Kilifi", "Kimilili", "Kisii", "Kisumu", "Kitale", "Kitui", "Kwale", "Laisamis", "Lamu", "Limuru", "Litein", "Lodwar", "Lokichogio", "Luanda", "Lungalunga", "Machakos", "Makueni", "Malaba", "Malindi", "Mandera", "Marigat", "Mariakani", "Marsabit", "Maua", "Mbale", "Meru", "Migori", "Mogotio", "Mombasa", "Mosoriot", "Moyale", "Mpeketoni", "Msambweni", "Murang'a", "Mwatate", "Mwea", "Mwingi", "Nairobi", "Naivasha", "Nakuru", "Nandi Hills", "Nanyuki", "Narok", "Nkubu", "Nyamira", "Nyandarua", "Nyeri", "Ogembo", "Othaya", "Oyugis", "Rabai", "Rongo", "Ruiru", "Runyenjes", "Sagana", "Shimoni", "Siakago", "Siaya", "Sotik", "Sultan Hamud", "Takaba", "Taveta", "Thika", "Timau", "Turkwel", "Ugunja", "Ukunda", "Usenge", "Vihiga", "Voi", "Wajir", "Watamu", "Webuye", "Witu", "Wote", "Wundanyi"]
+    },
+    {
+      "name": "Uganda",
+      "cities": ["Kampala", "Entebbe", "Gulu", "Lira", "Mbarara", "Jinja", "Mbale", "Kasese", "Masaka", "Fort Portal"]
+    },
+    {
+      "name": "Tanzania",
+      "cities": ["Dar es Salaam", "Dodoma", "Arusha", "Mwanza", "Zanzibar City", "Mbeya", "Morogoro", "Tanga", "Kigoma", "Iringa"]
+    },
+    {
+      "name": "Rwanda",
+      "cities": ["Kigali", "Butare", "Gisenyi", "Rwamagana", "Musanze", "Kibuye", "Cyangugu", "Byumba"]
+    },
+    {
+      "name": "Ethiopia",
+      "cities": ["Addis Ababa", "Dire Dawa", "Mekelle", "Gondar", "Bahir Dar", "Hawassa", "Jimma", "Dessie", "Adama", "Harar"]
+    },
+    {
+      "name": "South Africa",
+      "cities": ["Johannesburg", "Cape Town", "Durban", "Pretoria", "Port Elizabeth", "Bloemfontein", "East London", "Polokwane", "Nelspruit", "Kimberley"]
+    },
+    {
+      "name": "Nigeria",
+      "cities": ["Lagos", "Abuja", "Kano", "Ibadan", "Port Harcourt", "Benin City", "Kaduna", "Enugu", "Jos", "Ilorin"]
+    },
+    {
+      "name": "Egypt",
+      "cities": ["Cairo", "Alexandria", "Giza", "Shubra El-Kheima", "Port Said", "Suez", "Luxor", "Mansoura", "El-Mahalla El-Kubra", "Tanta"]
+    },
+    {
+      "name": "Ghana",
+      "cities": ["Accra", "Kumasi", "Tamale", "Sekondi-Takoradi", "Ashaiman", "Sunyani", "Cape Coast", "Obuasi", "Tema", "Koforidua"]
+    },
+    {
+      "name": "Morocco",
+      "cities": ["Casablanca", "Rabat", "Fes", "Marrakesh", "Tangier", "Agadir", "Meknes", "Oujda", "Kenitra", "Tetouan"]
+    },
+    {
+      "name": "Algeria",
+      "cities": ["Algiers", "Oran", "Constantine", "Annaba", "Blida", "Batna", "Setif", "Djelfa", "Sidi Bel Abbes", "Biskra"]
+    },
+    {
+      "name": "Tunisia",
+      "cities": ["Tunis", "Sfax", "Sousse", "Kairouan", "Bizerte", "Gabes", "Ariana", "Gafsa", "Monastir", "Ben Arous"]
+    },
+    {
+      "name": "Senegal",
+      "cities": ["Dakar", "Touba", "Thies", "Kaolack", "Saint-Louis", "Ziguinchor", "Mbour", "Rufisque", "Diourbel", "Louga"]
+    },
+    {
+      "name": "Ivory Coast",
+      "cities": ["Abidjan", "Yamoussoukro", "Bouake", "Daloa", "San-Pedro", "Korhogo", "Man", "Divo", "Gagnoa", "Abengourou"]
+    },
+    {
+      "name": "Cameroon",
+      "cities": ["Douala", "Yaounde", "Bamenda", "Garoua", "Bafoussam", "Maroua", "Nkongsamba", "Kumba", "Limbe", "Edea"]
+    },
+    {
+      "name": "Angola",
+      "cities": ["Luanda", "Huambo", "Lobito", "Benguela", "Lubango", "Kuito", "Malanje", "Cabinda", "Namibe", "Soyo"]
+    },
+    {
+      "name": "Mozambique",
+      "cities": ["Maputo", "Matola", "Beira", "Nampula", "Chimoio", "Quelimane", "Tete", "Nacala", "Lichinga", "Pemba"]
+    },
+    {
+      "name": "Zimbabwe",
+      "cities": ["Harare", "Bulawayo", "Chitungwiza", "Mutare", "Gweru", "Epworth", "Kwekwe", "Kadoma", "Masvingo", "Chinhoyi"]
+    },
+    {
+      "name": "Zambia",
+      "cities": ["Lusaka", "Kitwe", "Ndola", "Kabwe", "Chingola", "Mufulira", "Livingstone", "Luanshya", "Kasama", "Chipata"]
+    },
+    {
+      "name": "Botswana",
+      "cities": ["Gaborone", "Francistown", "Molepolole", "Maun", "Selebi-Phikwe", "Serowe", "Kanye", "Mochudi", "Lobatse", "Palapye"]
+    },
+    {
+      "name": "Namibia",
+      "cities": ["Windhoek", "Rundu", "Walvis Bay", "Oshakati", "Swakopmund", "Katima Mulilo", "Grootfontein", "Rehoboth", "Otjiwarongo", "Ondangwa"]
+    },
+    {
+      "name": "Mali",
+      "cities": ["Bamako", "Sikasso", "Mopti", "Koutiala", "Segou", "Kayes", "Gao", "Kati", "Tombouctou", "Markala"]
+    },
+    {
+      "name": "Burkina Faso",
+      "cities": ["Ouagadougou", "Bobo-Dioulasso", "Koudougou", "Ouahigouya", "Banfora", "Dedougou", "Kaya", "Fada N'gourma", "Tenkodogo", "Hounde"]
+    },
+    {
+      "name": "Niger",
+      "cities": ["Niamey", "Zinder", "Maradi", "Agadez", "Tahoua", "Dosso", "Arlit", "Diffa", "Tillaberi", "Birni N'Konni"]
+    },
+    {
+      "name": "Chad",
+      "cities": ["N'Djamena", "Moundou", "Sarh", "Abeche", "Kelo", "Koumra", "Pala", "Am Timan", "Bongor", "Mongo"]
+    },
+    {
+      "name": "Sudan",
+      "cities": ["Khartoum", "Omdurman", "Khartoum North", "Port Sudan", "Kassala", "El Obeid", "Nyala", "Gedaref", "Wad Madani", "El Fasher"]
+    },
+    {
+      "name": "Somalia",
+      "cities": ["Mogadishu", "Hargeisa", "Bosaso", "Kismayo", "Merca", "Jamame", "Baidoa", "Galkayo", "Berbera", "Burao"]
+    },
+    {
+      "name": "Eritrea",
+      "cities": ["Asmara", "Keren", "Massawa", "Assab", "Mendefera", "Barentu", "Adi Keyh", "Adi Quala", "Dekemhare", "Teseney"]
+    },
+    {
+      "name": "Djibouti",
+      "cities": ["Djibouti City", "Ali Sabieh", "Tadjoura", "Obock", "Dikhil", "Arta"]
+    },
+    {
+      "name": "Malawi",
+      "cities": ["Lilongwe", "Blantyre", "Mzuzu", "Zomba", "Kasungu", "Mangochi", "Karonga", "Salima", "Dedza", "Nkhotakota"]
+    },
+    {
+      "name": "Madagascar",
+      "cities": ["Antananarivo", "Toamasina", "Antsirabe", "Fianarantsoa", "Mahajanga", "Toliara", "Antsiranana", "Ambovombe", "Morondava", "Sambava"]
+    },
+    {
+      "name": "Mauritius",
+      "cities": ["Port Louis", "Beau Bassin-Rose Hill", "Vacoas-Phoenix", "Curepipe", "Quatre Bornes", "Triolet", "Goodlands", "Centre de Flacq", "Mahebourg", "Saint Pierre"]
+    },
+    {
+      "name": "Seychelles",
+      "cities": ["Victoria", "Anse Boileau", "Beau Vallon", "Cascade", "Takamaka"]
+    },
+    {
+      "name": "Comoros",
+      "cities": ["Moroni", "Mutsamudu", "Fomboni", "Domoni", "Tsimbeo"]
+    },
+    {
+      "name": "Burundi",
+      "cities": ["Gitega", "Bujumbura", "Muyinga", "Ruyigi", "Ngozi", "Rutana", "Bururi", "Makamba", "Muramvya", "Kayanza"]
+    },
+    {
+      "name": "Gabon",
+      "cities": ["Libreville", "Port-Gentil", "Franceville", "Oyem", "Moanda", "Mouila", "Lambarene", "Tchibanga", "Koulamoutou", "Makokou"]
+    },
+    {
+      "name": "Equatorial Guinea",
+      "cities": ["Malabo", "Bata", "Ebebiyin", "Aconibe", "Mongomo", "Evinayong"]
+    },
+    {
+      "name": "Republic of the Congo",
+      "cities": ["Brazzaville", "Pointe-Noire", "Dolisie", "Nkayi", "Kindamba", "Impfondo", "Ouesso", "Madingou", "Owando", "Sibiti"]
+    },
+    {
+      "name": "Democratic Republic of the Congo",
+      "cities": ["Kinshasa", "Lubumbashi", "Mbuji-Mayi", "Kananga", "Kisangani", "Bukavu", "Tshikapa", "Kolwezi", "Likasi", "Goma"]
+    },
+    {
+      "name": "Central African Republic",
+      "cities": ["Bangui", "Bimbo", "Berbérati", "Carnot", "Bambari", "Bouar", "Bossangoa", "Bria", "Bangassou", "Nola"]
+    },
+    {
+      "name": "South Sudan",
+      "cities": ["Juba", "Malakal", "Wau", "Yei", "Yambio", "Bor", "Aweil", "Torit", "Bentiu", "Rumbek"]
+    },
+    {
+      "name": "Liberia",
+      "cities": ["Monrovia", "Gbarnga", "Kakata", "Bensonville", "Harper", "Voinjama", "Buchanan", "Zwedru", "New Yekepa", "Ganta"]
+    },
+    {
+      "name": "Sierra Leone",
+      "cities": ["Freetown", "Bo", "Kenema", "Koidu", "Makeni", "Lunsar", "Port Loko", "Waterloo", "Kabala", "Kailahun"]
+    },
+    {
+      "name": "Guinea",
+      "cities": ["Conakry", "Nzerekore", "Kankan", "Kindia", "Labe", "Gueckedou", "Mamou", "Kissidougou", "Siguiri", "Boke"]
+    },
+    {
+      "name": "Guinea-Bissau",
+      "cities": ["Bissau", "Bafata", "Gabu", "Bissora", "Bolama", "Cacheu", "Bubaque", "Catio", "Farim", "Mansoa"]
+    },
+    {
+      "name": "Gambia",
+      "cities": ["Banjul", "Serekunda", "Brikama", "Bakau", "Farafenni", "Lamin", "Soma", "Gunjur", "Basse Santa Su", "Sukuta"]
+    },
+    {
+      "name": "Mauritania",
+      "cities": ["Nouakchott", "Nouadhibou", "Nema", "Kaedi", "Rosso", "Zouerate", "Kiffa", "Atar", "Selibaby", "Akjoujt"]
+    },
+    {
+      "name": "Benin",
+      "cities": ["Cotonou", "Porto-Novo", "Parakou", "Djougou", "Bohicon", "Kandi", "Abomey", "Natitingou", "Lokossa", "Ouidah"]
+    },
+    {
+      "name": "Togo",
+      "cities": ["Lome", "Sokode", "Kara", "Kpalime", "Atakpame", "Bassar", "Tsevie", "Aneho", "Mango", "Dapaong"]
+    },
+    {
+      "name": "Libya",
+      "cities": ["Tripoli", "Benghazi", "Misrata", "Bayda", "Zawiya", "Zuwara", "Ajdabiya", "Tobruk", "Sabha", "Sirte"]
+    },
+    {
+      "name": "Lesotho",
+      "cities": ["Maseru", "Teyateyaneng", "Mafeteng", "Hlotse", "Mohale's Hoek", "Maputsoe", "Qacha's Nek", "Quthing", "Butha-Buthe", "Mokhotlong"]
+    },
+    {
+      "name": "Eswatini",
+      "cities": ["Mbabane", "Manzini", "Big Bend", "Malkerns", "Nhlangano", "Siteki", "Piggs Peak", "Lobamba"]
+    },
+    {
+      "name": "Sao Tome and Principe",
+      "cities": ["Sao Tome", "Santo Antonio", "Trindade", "Neves", "Santana"]
+    },
+    {
+      "name": "Cape Verde",
+      "cities": ["Praia", "Mindelo", "Santa Maria", "Assomada", "Pedra Badejo", "Sao Filipe", "Tarrafal", "Vila do Maio"]
+    },
+    {
+      "name": "United States",
+      "cities": ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Jacksonville", "Fort Worth", "Columbus", "San Francisco"]
+    },
+    {
+      "name": "United Kingdom",
+      "cities": ["London", "Manchester", "Birmingham", "Leeds", "Glasgow", "Liverpool", "Newcastle", "Sheffield", "Bristol", "Edinburgh", "Cardiff", "Belfast", "Nottingham", "Leicester", "Southampton"]
+    },
+    {
+      "name": "United Arab Emirates",
+      "cities": ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Al Ain", "Umm Al Quwain", "Khor Fakkan", "Dibba Al-Fujairah"]
+    },
+    {
+      "name": "India",
+      "cities": ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Surat", "Lucknow", "Kanpur", "Nagpur", "Indore", "Kochi"]
+    },
+    {
+      "name": "China",
+      "cities": ["Beijing", "Shanghai", "Guangzhou", "Shenzhen", "Chengdu", "Hangzhou", "Wuhan", "Xi'an", "Chongqing", "Tianjin", "Nanjing", "Suzhou", "Dongguan", "Shenyang", "Qingdao"]
+    },
+    {
+      "name": "Germany",
+      "cities": ["Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt", "Stuttgart", "Dusseldorf", "Dortmund", "Essen", "Leipzig", "Bremen", "Dresden", "Hanover", "Nuremberg", "Duisburg"]
+    },
+    {
+      "name": "France",
+      "cities": ["Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille", "Rennes", "Reims", "Le Havre", "Saint-Etienne", "Toulon"]
+    },
+    {
+      "name": "Canada",
+      "cities": ["Toronto", "Montreal", "Vancouver", "Calgary", "Edmonton", "Ottawa", "Winnipeg", "Quebec City", "Hamilton", "Kitchener", "London", "Victoria", "Halifax", "Oshawa", "Windsor"]
+    },
+    {
+      "name": "Australia",
+      "cities": ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Gold Coast", "Canberra", "Newcastle", "Wollongong", "Logan City", "Geelong", "Hobart", "Townsville", "Cairns", "Darwin"]
+    }
+  ]
+}

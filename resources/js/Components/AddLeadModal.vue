@@ -3,6 +3,7 @@ import { ref, watch, computed } from 'vue';
 import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import Alert from '@/Components/Alert.vue';
+import LocationSelect from '@/Components/LocationSelect.vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -264,23 +265,11 @@ watch(() => props.show, (isShowing) => {
                         <p v-if="errors.primary_field" class="mt-1 text-sm text-red-600">{{ errors.primary_field }}</p>
                     </div>
 
-                    <!-- Country -->
-                    <div class="mb-4">
-                        <label for="country" class="mb-2 block font-body text-sm font-medium text-light-black">
-                            Country
-                        </label>
-                        <input id="country" v-model="form.country" type="text" placeholder="Country"
-                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
-                    </div>
-
-                    <!-- City -->
-                    <div class="mb-4">
-                        <label for="city" class="mb-2 block font-body text-sm font-medium text-light-black">
-                            City
-                        </label>
-                        <input id="city" v-model="form.city" type="text" placeholder="City"
-                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-light-black placeholder-zurit-gray focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple" />
-                    </div>
+                    <!-- Country & City -->
+                    <LocationSelect
+                        v-model:country="form.country"
+                        v-model:city="form.city"
+                    />
 
                     <!-- Sector / Interest -->
                     <div class="mb-4">
