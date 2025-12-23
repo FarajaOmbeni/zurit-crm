@@ -126,7 +126,6 @@ it('can create a new company lead', function () {
             'company' => 'Test Company',
             'email' => 'test@company.com',
             'status' => 'new_lead',
-            'is_client' => false,
         ]);
 
     $this->assertDatabaseHas('leads', [
@@ -286,7 +285,7 @@ it('can update a lead', function () {
     $lead = Lead::factory()->create(['added_by' => $this->teamMember->id]);
 
     $this->actingAs($this->teamMember)
-        ->patchJson("/api/leads/{$lead->id}", [
+        ->putJson("/api/leads/{$lead->id}", [
             'company' => 'Updated Company',
             'value' => 75000,
         ])
@@ -306,7 +305,7 @@ it('validates status when updating lead', function () {
     $lead = Lead::factory()->create(['added_by' => $this->teamMember->id]);
 
     $this->actingAs($this->teamMember)
-        ->patchJson("/api/leads/{$lead->id}", [
+        ->putJson("/api/leads/{$lead->id}", [
             'status' => 'invalid_status',
         ])
         ->assertStatus(422)
@@ -332,7 +331,7 @@ it('can update lead status for a specific product', function () {
     $lead->products()->attach($product->id, ['status' => 'new_lead', 'enrolled_at' => now()]);
 
     $this->actingAs($this->teamMember)
-        ->postJson("/api/leads/{$lead->id}/status", [
+        ->patchJson("/api/leads/{$lead->id}/status", [
             'status' => 'negotiations',
             'product_id' => $product->id,
         ])
@@ -351,7 +350,7 @@ it('converts lead to client when marked as won', function () {
     $lead->products()->attach($product->id, ['status' => 'negotiations', 'enrolled_at' => now()]);
 
     $this->actingAs($this->teamMember)
-        ->postJson("/api/leads/{$lead->id}/status", [
+        ->patchJson("/api/leads/{$lead->id}/status", [
             'status' => 'won',
             'product_id' => $product->id,
             'value' => 100000,
@@ -368,7 +367,7 @@ it('requires product_id when updating status', function () {
     $lead = Lead::factory()->create(['added_by' => $this->teamMember->id]);
 
     $this->actingAs($this->teamMember)
-        ->postJson("/api/leads/{$lead->id}/status", [
+        ->patchJson("/api/leads/{$lead->id}/status", [
             'status' => 'won',
         ])
         ->assertStatus(422)
@@ -380,7 +379,7 @@ it('can mark lead as won', function () {
     $lead = Lead::factory()->create(['added_by' => $this->teamMember->id, 'is_client' => false]);
 
     $this->actingAs($this->teamMember)
-        ->postJson("/api/leads/{$lead->id}/won", [
+        ->patchJson("/api/leads/{$lead->id}/mark-won", [
             'value' => 50000,
         ])
         ->assertStatus(200);
@@ -397,7 +396,7 @@ it('can mark lead as lost with reason', function () {
     $lead = Lead::factory()->create(['added_by' => $this->teamMember->id]);
 
     $this->actingAs($this->teamMember)
-        ->postJson("/api/leads/{$lead->id}/lost", [
+        ->patchJson("/api/leads/{$lead->id}/mark-lost", [
             'lost_reason' => 'Budget constraints',
         ])
         ->assertStatus(200);
@@ -412,7 +411,7 @@ it('requires lost reason when marking as lost', function () {
     $lead = Lead::factory()->create(['added_by' => $this->teamMember->id]);
 
     $this->actingAs($this->teamMember)
-        ->postJson("/api/leads/{$lead->id}/lost", [])
+        ->patchJson("/api/leads/{$lead->id}/mark-lost", [])
         ->assertStatus(422)
         ->assertJsonValidationErrors(['lost_reason']);
 });
@@ -423,7 +422,7 @@ it('admin can reassign leads to any user', function () {
     $newUser = User::factory()->create();
 
     $this->actingAs($this->admin)
-        ->postJson("/api/leads/{$lead->id}/reassign", [
+        ->patchJson("/api/leads/{$lead->id}/reassign", [
             'new_user_id' => $newUser->id,
         ])
         ->assertStatus(200);
@@ -439,7 +438,7 @@ it('stores original owner on first reassignment', function () {
     $newUser = User::factory()->create();
 
     $this->actingAs($this->admin)
-        ->postJson("/api/leads/{$lead->id}/reassign", [
+        ->patchJson("/api/leads/{$lead->id}/reassign", [
             'new_user_id' => $newUser->id,
         ])
         ->assertStatus(200);
@@ -453,7 +452,7 @@ it('manager can only reassign to team members', function () {
     $outsideUser = User::factory()->create(); // Not in manager's team
 
     $this->actingAs($this->manager)
-        ->postJson("/api/leads/{$lead->id}/reassign", [
+        ->patchJson("/api/leads/{$lead->id}/reassign", [
             'new_user_id' => $outsideUser->id,
         ])
         ->assertStatus(422)
@@ -471,7 +470,7 @@ it('can add notes for a product', function () {
             'note' => 'Called client, interested in demo',
         ])
         ->assertStatus(201)
-        ->assertJsonFragment(['message' => 'Note added successfully']);
+        ->assertJsonFragment(['message' => 'Note added successfully.']);
 
     expect($lead->getNotesForProduct($product->id))->toContain('Called client, interested in demo');
 });

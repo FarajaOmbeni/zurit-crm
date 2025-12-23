@@ -197,7 +197,7 @@ it('can update a product', function () {
     ]);
 
     $this->actingAs($this->admin)
-        ->patchJson("/api/products/{$product->id}", [
+        ->putJson("/api/products/{$product->id}", [
             'name' => 'Updated Name',
             'price' => 200,
         ])
@@ -218,7 +218,7 @@ it('can deactivate a product', function () {
     $product = Product::factory()->create(['is_active' => true]);
 
     $this->actingAs($this->admin)
-        ->patchJson("/api/products/{$product->id}", [
+        ->putJson("/api/products/{$product->id}", [
             'is_active' => false,
         ])
         ->assertStatus(200);
@@ -233,7 +233,7 @@ it('can reactivate a product', function () {
     $product = Product::factory()->inactive()->create();
 
     $this->actingAs($this->admin)
-        ->patchJson("/api/products/{$product->id}", [
+        ->putJson("/api/products/{$product->id}", [
             'is_active' => true,
         ])
         ->assertStatus(200);
@@ -248,7 +248,7 @@ it('validates price when updating product', function () {
     $product = Product::factory()->create();
 
     $this->actingAs($this->admin)
-        ->patchJson("/api/products/{$product->id}", [
+        ->putJson("/api/products/{$product->id}", [
             'price' => 'not-a-number',
         ])
         ->assertStatus(422)
@@ -259,7 +259,7 @@ it('validates price is not negative when updating', function () {
     $product = Product::factory()->create();
 
     $this->actingAs($this->admin)
-        ->patchJson("/api/products/{$product->id}", [
+        ->putJson("/api/products/{$product->id}", [
             'price' => -50,
         ])
         ->assertStatus(422)

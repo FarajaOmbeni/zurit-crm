@@ -218,7 +218,7 @@ it('can update a client', function () {
     $client = Lead::factory()->client()->create(['added_by' => $this->teamMember->id]);
 
     $this->actingAs($this->teamMember)
-        ->patchJson("/api/clients/{$client->id}", [
+        ->putJson("/api/clients/{$client->id}", [
             'company' => 'Updated Client Company',
             'value' => 100000,
         ])
@@ -241,7 +241,7 @@ it('cannot update a lead that is not a client', function () {
     ]);
 
     $this->actingAs($this->teamMember)
-        ->patchJson("/api/clients/{$lead->id}", [
+        ->putJson("/api/clients/{$lead->id}", [
             'company' => 'Should Not Update',
         ])
         ->assertStatus(404);
@@ -251,7 +251,7 @@ it('validates email format when updating client', function () {
     $client = Lead::factory()->client()->create(['added_by' => $this->teamMember->id]);
 
     $this->actingAs($this->teamMember)
-        ->patchJson("/api/clients/{$client->id}", [
+        ->putJson("/api/clients/{$client->id}", [
             'email' => 'invalid-email',
         ])
         ->assertStatus(422)
@@ -262,7 +262,7 @@ it('validates value is positive when updating client', function () {
     $client = Lead::factory()->client()->create(['added_by' => $this->teamMember->id]);
 
     $this->actingAs($this->teamMember)
-        ->patchJson("/api/clients/{$client->id}", [
+        ->putJson("/api/clients/{$client->id}", [
             'value' => -1000,
         ])
         ->assertStatus(422)
@@ -370,7 +370,7 @@ it('prevents unauthorized update of other users clients', function () {
     $otherUserClient = Lead::factory()->client()->create(['added_by' => $this->admin->id]);
 
     $this->actingAs($this->teamMember)
-        ->patchJson("/api/clients/{$otherUserClient->id}", [
+        ->putJson("/api/clients/{$otherUserClient->id}", [
             'company' => 'Unauthorized Update',
         ])
         ->assertStatus(403);
