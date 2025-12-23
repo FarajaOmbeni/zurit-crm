@@ -29,6 +29,10 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role' => 'team_member',
+            'is_active' => true,
+            'manager_id' => null,
+            'must_reset_password' => false,
         ];
     }
 
@@ -39,6 +43,48 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
+    }
+
+    /**
+     * Indicate that the user is a manager.
+     */
+    public function manager(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'manager',
+        ]);
+    }
+
+    /**
+     * Indicate that the user is a team member.
+     */
+    public function teamMember(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'team_member',
+        ]);
+    }
+
+    /**
+     * Indicate that the user must reset their password.
+     */
+    public function mustResetPassword(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'must_reset_password' => true,
+            'otp' => str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT),
+            'otp_expires_at' => now()->addHours(24),
         ]);
     }
 }
