@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('leads', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Contact person name
+            $table->string('name')->nullable(); // Contact person name
             $table->string('position')->nullable(); // Contact person's position
             $table->string('company'); // Company name
             $table->string('email')->nullable();

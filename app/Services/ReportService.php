@@ -128,7 +128,7 @@ class ReportService
 
     /**
      * Calculate outreach summary.
-     * Returns total leads contacted and list of company/person names.
+     * Returns total leads contacted and list of "lead name - product" entries.
      */
     public function calculateOutreachSummary(User $user, Carbon $startDate, Carbon $endDate): array
     {
@@ -140,27 +140,47 @@ class ReportService
             ->whereIn('lead_id', $leadIds)
             ->whereBetween('updated_at', [$startDate, $endDate])
             ->whereNotNull('status')
+            ->where('status', '!=', 'new_lead')  // Exclude uncontacted leads
             ->distinct('lead_id')
             ->pluck('lead_id');
 
         // Count total contacted leads
         $totalContacted = $contactedLeadIds->count();
 
-        // Get lead details for display
-        $contactedLeads = Lead::whereIn('id', $contactedLeadIds)
-            ->select('id', 'contact_type', 'name', 'company')
+        // Get lead details with products for display
+        $contactedLeads = \DB::table('lead_product')
+            ->join('leads', 'lead_product.lead_id', '=', 'leads.id')
+            ->leftJoin('products', 'lead_product.product_id', '=', 'products.id')
+            ->whereIn('lead_product.lead_id', $contactedLeadIds)
+            ->whereBetween('lead_product.updated_at', [$startDate, $endDate])
+            ->whereNotNull('lead_product.status')
+            ->where('lead_product.status', '!=', 'new_lead')
+            ->select(
+                'leads.id',
+                'leads.contact_type',
+                'leads.name',
+                'leads.company',
+                'products.name as product_name'
+            )
             ->get()
-            ->map(function ($lead) {
+            ->map(function ($item) {
                 // For company contacts, show company name
                 // For personal contacts, show person's name
-                $displayName = $lead->contact_type === 'company'
-                    ? ($lead->company ?? $lead->name)
-                    : $lead->name;
+                $displayName = $item->contact_type === 'company'
+                    ? ($item->company ?? $item->name)
+                    : $item->name;
+
+                // Format as "lead name - product" or just "lead name" if no product
+                $formattedDisplay = $item->product_name
+                    ? "{$displayName} - {$item->product_name}"
+                    : "{$displayName} - No Product";
 
                 return [
-                    'id' => $lead->id,
-                    'display_name' => $displayName,
-                    'contact_type' => $lead->contact_type,
+                    'id' => $item->id,
+                    'display_name' => $formattedDisplay,
+                    'contact_type' => $item->contact_type,
+                    'lead_name' => $displayName,
+                    'product_name' => $item->product_name ?? 'No Product',
                 ];
             })
             ->toArray();

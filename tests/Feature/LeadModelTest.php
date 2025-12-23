@@ -331,7 +331,7 @@ it('can get all product data for a lead', function () {
     expect($productData)->toBeArray();
     expect($productData['status'])->toBe('negotiations');
     expect($productData['notes'])->toBe('Test notes');
-    expect($productData['value'])->toBe('50000.00');
+    expect($productData['value'])->toBe(50000);
 });
 
 it('returns null when getting product data for non-associated product', function () {
