@@ -11,8 +11,8 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Only admin can view all users
-        return $user->isAdmin();
+        // Admin can view all users, managers can view their team
+        return $user->isAdmin() || $user->isManager();
     }
 
     /**
@@ -40,8 +40,8 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        // Only admin can create users
-        return $user->isAdmin();
+        // Admin and managers can create users
+        return $user->isAdmin() || $user->isManager();
     }
 
     /**
@@ -106,7 +106,16 @@ class UserPolicy
      */
     public function resendOtp(User $user, User $model): bool
     {
-        // Only admin can resend OTP
-        return $user->isAdmin();
+        // Admin can resend OTP for all users
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Manager can resend OTP for their team members
+        if ($user->isManager()) {
+            return $user->teamMembers()->pluck('id')->contains($model->id);
+        }
+
+        return false;
     }
 }

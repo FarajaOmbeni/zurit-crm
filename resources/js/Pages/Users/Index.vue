@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+import { ref, watch, computed } from 'vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -17,6 +17,11 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+const page = usePage();
+const currentUser = computed(() => page.props.auth.user);
+const isAdmin = computed(() => currentUser.value?.role === 'admin');
+const isManager = computed(() => currentUser.value?.role === 'manager');
 
 const showCreateModal = ref(false);
 
@@ -88,9 +93,11 @@ const resendOtp = (userId) => {
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <!-- Header Section -->
                 <div class="mb-6 flex items-center justify-between">
-                    <h1 class="font-heading text-3xl font-bold text-light-black">Manage Users</h1>
+                    <h1 class="font-heading text-3xl font-bold text-light-black">
+                        {{ isManager ? 'My Team' : 'Manage Users' }}
+                    </h1>
                     <PrimaryButton @click="showCreateModal = true">
-                        Create User
+                        {{ isManager ? 'Add Team Member' : 'Create User' }}
                     </PrimaryButton>
                 </div>
 
@@ -218,7 +225,7 @@ const resendOtp = (userId) => {
                             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                                 <div class="mb-4">
                                     <h3 class="font-heading text-2xl font-bold text-light-black" id="modal-title">
-                                        Create New User
+                                        {{ isManager ? 'Add New Team Member' : 'Create New User' }}
                                     </h3>
                                 </div>
 
@@ -250,8 +257,8 @@ const resendOtp = (userId) => {
                                         <InputError class="mt-2" :message="form.errors.email" />
                                     </div>
 
-                                    <!-- Role -->
-                                    <div class="mb-4">
+                                    <!-- Role (only for admins) -->
+                                    <div v-if="isAdmin" class="mb-4">
                                         <InputLabel for="role" value="Role" />
                                         <select
                                             id="role"
@@ -266,8 +273,8 @@ const resendOtp = (userId) => {
                                         <InputError class="mt-2" :message="form.errors.role" />
                                     </div>
 
-                                    <!-- Manager (only for team members) -->
-                                    <div v-if="form.role === 'team_member'" class="mb-4">
+                                    <!-- Manager (only for admins when creating team members) -->
+                                    <div v-if="isAdmin && form.role === 'team_member'" class="mb-4">
                                         <InputLabel for="manager_id" value="Assign to Manager" />
                                         <select
                                             id="manager_id"
@@ -304,7 +311,7 @@ const resendOtp = (userId) => {
                                             Cancel
                                         </button>
                                         <PrimaryButton :disabled="form.processing">
-                                            Create User
+                                            {{ isManager ? 'Add Team Member' : 'Create User' }}
                                         </PrimaryButton>
                                     </div>
                                 </form>

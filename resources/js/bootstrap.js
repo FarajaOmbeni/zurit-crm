@@ -6,17 +6,26 @@ window.axios.defaults.withCredentials = true;
 
 // Set up CSRF token interceptor
 window.axios.interceptors.request.use(function (config) {
-    // Get CSRF token from meta tag
-    const token = document.head.querySelector('meta[name="csrf-token"]');
-    if (token) {
-        config.headers['X-CSRF-TOKEN'] = token.content;
-    } else {
-        // Fallback: get from cookie
+    // Try to get CSRF token from multiple sources (in priority order)
+    let token = null;
+
+    // Priority 1: Get from meta tag (always updated on page load/refresh)
+    const metaToken = document.head.querySelector('meta[name="csrf-token"]');
+    if (metaToken) {
+        token = metaToken.content;
+    }
+
+    // Priority 2: Fallback to cookie
+    if (!token) {
         const csrfCookie = document.cookie.split(';').find(c => c.trim().startsWith('XSRF-TOKEN='));
         if (csrfCookie) {
-            config.headers['X-XSRF-TOKEN'] = decodeURIComponent(csrfCookie.split('=')[1]);
+            token = decodeURIComponent(csrfCookie.split('=')[1]);
+            config.headers['X-XSRF-TOKEN'] = token;
         }
+    } else {
+        config.headers['X-CSRF-TOKEN'] = token;
     }
+
     return config;
 }, function (error) {
     return Promise.reject(error);

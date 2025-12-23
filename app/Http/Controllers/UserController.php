@@ -17,14 +17,22 @@ class UserController extends Controller
      */
     public function index()
     {
-        // Only admins can access user management
-        if (auth()->user()->role !== 'admin') {
+        $currentUser = auth()->user();
+
+        // Only admins and managers can access user management
+        if (!$currentUser->isAdmin() && !$currentUser->isManager()) {
             abort(403, 'Unauthorized access.');
         }
 
-        $users = User::with('manager')
-            ->orderBy('created_at', 'desc')
-            ->get()
+        // Build the user query based on role
+        $query = User::with('manager')->orderBy('created_at', 'desc');
+
+        // Managers can only see their team members
+        if ($currentUser->isManager()) {
+            $query->where('manager_id', $currentUser->id);
+        }
+
+        $users = $query->get()
             ->map(function ($user) {
                 $otpExpired = $user->otp && $user->otp_expires_at && $user->otp_expires_at->isPast();
                 $hasOtp = !empty($user->otp) && $user->must_reset_password;
@@ -60,18 +68,33 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // Only admins can create users
-        if (auth()->user()->role !== 'admin') {
+        $currentUser = auth()->user();
+
+        // Only admins and managers can create users
+        if (!$currentUser->isAdmin() && !$currentUser->isManager()) {
             abort(403, 'Unauthorized access.');
         }
 
-        $validated = $request->validate([
+        // Validation rules depend on user role
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
-            'role' => ['required', 'in:admin,manager,team_member'],
-            'manager_id' => ['nullable', 'exists:users,id'],
             'is_active' => ['boolean'],
-        ]);
+        ];
+
+        // Admins can set role and manager_id
+        if ($currentUser->isAdmin()) {
+            $rules['role'] = ['required', 'in:admin,manager,team_member'];
+            $rules['manager_id'] = ['nullable', 'exists:users,id'];
+        }
+
+        $validated = $request->validate($rules);
+
+        // For managers, force the role to team_member and set manager_id to their own ID
+        if ($currentUser->isManager()) {
+            $validated['role'] = 'team_member';
+            $validated['manager_id'] = $currentUser->id;
+        }
 
         // Generate 6-digit OTP
         $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -100,8 +123,10 @@ class UserController extends Controller
      */
     public function resendOtp(User $user)
     {
-        // Only admins can resend OTP
-        if (auth()->user()->role !== 'admin') {
+        $currentUser = auth()->user();
+
+        // Check authorization using the policy
+        if (!$currentUser->can('resendOtp', $user)) {
             abort(403, 'Unauthorized access.');
         }
 
