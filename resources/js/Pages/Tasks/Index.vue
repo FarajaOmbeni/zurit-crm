@@ -38,7 +38,6 @@ const newTask = ref({
     priority: 'medium',
     due_date: '',
     lead_id: null,
-    client_name: '',
 });
 const leads = ref([]);
 const submitting = ref(false);
@@ -102,7 +101,14 @@ const fetchStats = async () => {
 // Fetch leads for the dropdown
 const fetchLeads = async () => {
     try {
-        const response = await axios.get('/api/leads', { params: { per_page: 100 } });
+        // Fetch all leads (both leads and clients) with a high per_page limit
+        // The backend will filter based on user permissions
+        const response = await axios.get('/api/leads', {
+            params: {
+                per_page: 1000,
+                include_clients: true // Include both leads and clients
+            }
+        });
         leads.value = response.data.data || [];
     } catch (error) {
         console.error('Error fetching leads:', error);
@@ -151,30 +157,9 @@ const deleteTask = async () => {
 const addTask = async () => {
     formErrors.value = {};
     submitting.value = true;
-    
+
     try {
-        // Try to find matching lead by client name
-        let taskData = { ...newTask.value };
-        
-        if (taskData.client_name && taskData.client_name.trim()) {
-            // Search for a lead that matches the client name
-            const matchingLead = leads.value.find(lead => 
-                lead.name?.toLowerCase().includes(taskData.client_name.toLowerCase()) ||
-                lead.company?.toLowerCase().includes(taskData.client_name.toLowerCase())
-            );
-            
-            if (matchingLead) {
-                taskData.lead_id = matchingLead.id;
-            } else {
-                // If no match found, set lead_id to null (will be internal task)
-                taskData.lead_id = null;
-            }
-        }
-        
-        // Remove client_name from the payload as backend doesn't expect it
-        delete taskData.client_name;
-        
-        await axios.post('/api/tasks', taskData);
+        await axios.post('/api/tasks', newTask.value);
         showAddModal.value = false;
         resetForm();
         fetchTasks();
@@ -197,12 +182,21 @@ const resetForm = () => {
         priority: 'medium',
         due_date: '',
         lead_id: null,
-        client_name: '',
     };
     formErrors.value = {};
 };
 
 // Helpers
+const getLeadDisplayName = (lead) => {
+    if (!lead) return '';
+    const name = lead.name || '';
+    const company = lead.company || '';
+    if (name && company) {
+        return `${name} - ${company}`;
+    }
+    return name || company || 'Unknown';
+};
+
 const isOverdue = (task) => {
     if (task.status === 'completed') return false;
     const dueDate = new Date(task.due_date);
@@ -583,15 +577,40 @@ onMounted(() => {
                                     </div>
                                 </div>
 
-                                <!-- Delete Button -->
-                                <button
-                                    @click="confirmDelete(task)"
-                                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-red-200 bg-white text-red-500 hover:bg-red-50 hover:border-red-300 transition-colors"
-                                >
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
+                                <!-- Action Buttons -->
+                                <div class="flex items-center gap-2">
+                                    <!-- Toggle Complete Button -->
+                                    <button
+                                        @click="toggleTask(task)"
+                                        :class="[
+                                            'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border transition-colors',
+                                            task.status === 'completed'
+                                                ? 'border-yellow-200 bg-white text-yellow-600 hover:bg-yellow-50 hover:border-yellow-300'
+                                                : 'border-green-200 bg-white text-green-600 hover:bg-green-50 hover:border-green-300'
+                                        ]"
+                                        :title="task.status === 'completed' ? 'Mark as pending' : 'Mark as completed'"
+                                    >
+                                        <!-- Undo icon for completed tasks -->
+                                        <svg v-if="task.status === 'completed'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                        </svg>
+                                        <!-- Check icon for pending tasks -->
+                                        <svg v-else class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </button>
+
+                                    <!-- Delete Button -->
+                                    <button
+                                        @click="confirmDelete(task)"
+                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-red-200 bg-white text-red-500 hover:bg-red-50 hover:border-red-300 transition-colors"
+                                        title="Delete task"
+                                    >
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -713,16 +732,26 @@ onMounted(() => {
                         ></textarea>
                     </div>
 
-                    <!-- Client -->
+                    <!-- Lead/Client Selection -->
                     <div>
-                        <label class="block font-body text-sm font-medium text-light-black mb-2">Client *</label>
-                        <input
-                            v-model="newTask.client_name"
-                            type="text"
-                            placeholder="Client name or company"
-                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                        />
-                        <p v-if="formErrors.client_name" class="mt-1 text-sm text-red-500">{{ formErrors.client_name[0] }}</p>
+                        <label class="block font-body text-sm font-medium text-light-black mb-2">
+                            Lead/Client
+                            <span class="text-xs text-zurit-gray font-normal ml-1">(Optional - leave empty for internal tasks)</span>
+                        </label>
+                        <select
+                            v-model="newTask.lead_id"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                        >
+                            <option :value="null">Select a lead/client (or leave as internal task)</option>
+                            <option
+                                v-for="lead in leads"
+                                :key="lead.id"
+                                :value="lead.id"
+                            >
+                                {{ getLeadDisplayName(lead) }}
+                            </option>
+                        </select>
+                        <p v-if="formErrors.lead_id" class="mt-1 text-sm text-red-500">{{ formErrors.lead_id[0] }}</p>
                     </div>
 
                     <!-- Due Date -->
