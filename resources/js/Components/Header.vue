@@ -8,6 +8,7 @@ import axios from 'axios';
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const isAdmin = computed(() => user.value?.role === 'admin');
+const isManager = computed(() => user.value?.role === 'manager');
 
 const navigation = [
     { name: 'Client Database', route: 'clients.index' },
@@ -183,8 +184,8 @@ const handlePipelineMouseLeave = () => {
                         </template>
 
                         <template #content>
-                            <DropdownLink v-if="isAdmin" :href="route('users.index')">
-                                Manage Users
+                            <DropdownLink v-if="isAdmin || isManager" :href="route('users.index')">
+                                {{ isAdmin ? 'Manage Users' : 'My Team' }}
                             </DropdownLink>
                             <DropdownLink :href="route('profile.edit')">
                                 Settings
