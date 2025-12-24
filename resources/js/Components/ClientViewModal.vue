@@ -5,13 +5,9 @@ import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import Alert from '@/Components/Alert.vue';
-import ReassignLeadModal from '@/Components/ReassignLeadModal.vue';
+import AddActivityModal from '@/Components/AddActivityModal.vue';
 import LocationSelect from '@/Components/LocationSelect.vue';
-import { ref, watch, computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-
-const page = usePage();
-const currentUser = computed(() => page.props.auth?.user);
+import { ref, watch } from 'vue';
 
 const props = defineProps({
     show: {
@@ -35,14 +31,9 @@ const props = defineProps({
 const emit = defineEmits(['close', 'edit', 'updated']);
 
 const isEditMode = ref(false);
-const showActionsMenu = ref(false);
-const showReassignModal = ref(false);
-
-// Check if current user can reassign leads (admin or manager)
-const canReassign = computed(() => {
-    const role = currentUser.value?.role;
-    return role === 'admin' || role === 'manager';
-});
+const showActivityModal = ref(false);
+const activities = ref([]);
+const loadingActivities = ref(false);
 
 const form = ref({
     name: '',
@@ -89,12 +80,15 @@ watch(() => props.initialEditMode, (newValue) => {
     }
 });
 
-// Reset edit mode when modal closes
+// Reset edit mode when modal closes, fetch activities when it opens
 watch(() => props.show, (isShowing) => {
     if (!isShowing) {
         isEditMode.value = false;
         errors.value = {};
         notification.value = { type: null, message: '' };
+        activities.value = [];
+    } else if (props.client?.id) {
+        fetchActivities();
     }
 });
 
@@ -170,19 +164,65 @@ const getServices = () => {
     });
 };
 
-const handleEdit = () => {
-    showActionsMenu.value = false;
-    isEditMode.value = true;
+const fetchActivities = async () => {
+    if (!props.client?.id) return;
+
+    loadingActivities.value = true;
+    try {
+        const response = await window.axios.get(`/api/activities?lead_id=${props.client.id}`);
+        activities.value = response.data.data || response.data || [];
+    } catch (error) {
+        console.error('Error fetching activities:', error);
+        activities.value = [];
+    } finally {
+        loadingActivities.value = false;
+    }
 };
 
-const handleReassign = () => {
-    showActionsMenu.value = false;
-    showReassignModal.value = true;
+const handleAddActivity = () => {
+    showActivityModal.value = true;
 };
 
-const handleReassigned = (updatedLead) => {
-    showReassignModal.value = false;
-    emit('updated', updatedLead);
+const handleActivityAdded = (activity) => {
+    showActivityModal.value = false;
+    // Refresh activities list
+    fetchActivities();
+    // Optionally emit event to parent to refresh data
+    emit('updated', props.client);
+};
+
+const getActivityIcon = (type) => {
+    const icons = {
+        call: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z',
+        email: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+        meeting: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+        note: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+    };
+    return icons[type] || icons.note;
+};
+
+const getActivityColor = (type) => {
+    const colors = {
+        call: 'bg-green-100 text-green-600',
+        email: 'bg-blue-100 text-blue-600',
+        meeting: 'bg-purple-100 text-purple-600',
+        note: 'bg-yellow-100 text-yellow-600',
+    };
+    return colors[type] || 'bg-gray-100 text-gray-600';
+};
+
+const formatActivityDate = (date) => {
+    if (!date) return '-';
+    const d = new Date(date);
+    const now = new Date();
+    const diffTime = now - d;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
 const cancelEdit = () => {
@@ -460,6 +500,69 @@ const submit = async () => {
                         </div>
                     </div>
                 </div>
+
+                <!-- Activities Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-heading text-sm font-semibold text-light-black">Activities</h3>
+                        <button @click="handleAddActivity"
+                            class="inline-flex items-center space-x-1 text-zurit-purple hover:text-zurit-purple/80 transition-colors">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span class="font-body text-sm">Add</span>
+                        </button>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div v-if="loadingActivities" class="flex items-center justify-center py-8">
+                        <svg class="animate-spin h-6 w-6 text-zurit-purple" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+
+                    <!-- Activities List -->
+                    <div v-else-if="activities.length > 0" class="space-y-3 max-h-64 overflow-y-auto">
+                        <div v-for="activity in activities" :key="activity.id"
+                            class="flex items-start space-x-3 rounded-lg border border-gray-200 bg-white p-3">
+                            <!-- Activity Icon -->
+                            <div :class="['flex-shrink-0 rounded-full p-2', getActivityColor(activity.type)]">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="getActivityIcon(activity.type)" />
+                                </svg>
+                            </div>
+                            <!-- Activity Content -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-body text-sm font-medium text-light-black capitalize">{{ activity.type }}</span>
+                                    <span class="font-body text-xs text-zurit-gray">{{ formatActivityDate(activity.activity_date) }}</span>
+                                </div>
+                                <p v-if="activity.description" class="font-body text-sm text-zurit-gray mt-1 line-clamp-2">
+                                    {{ activity.description }}
+                                </p>
+                                <p v-if="activity.outcome" class="font-body text-xs text-zurit-gray mt-1 italic">
+                                    Outcome: {{ activity.outcome }}
+                                </p>
+                                <p v-if="activity.user" class="font-body text-xs text-zurit-gray mt-1">
+                                    by {{ activity.user.name }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div v-else class="text-center py-8 rounded-lg border border-dashed border-gray-300">
+                        <svg class="mx-auto h-8 w-8 text-zurit-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <p class="font-body text-sm text-zurit-gray mt-2">No activities yet</p>
+                        <button @click="handleAddActivity"
+                            class="mt-2 font-body text-sm text-zurit-purple hover:text-zurit-purple/80 transition-colors">
+                            Add first activity
+                        </button>
+                    </div>
+                </div>
             </template>
 
             <!-- Edit Form -->
@@ -542,62 +645,14 @@ const submit = async () => {
                 </form>
             </div>
 
-            <!-- Action Buttons (only show in view mode) -->
-            <div v-else class="flex justify-end">
-                <!-- Actions Dropdown (for admin/manager with reassign option) -->
-                <div v-if="canReassign" class="relative">
-                    <button @click="showActionsMenu = !showActionsMenu"
-                        class="inline-flex items-center space-x-2 rounded-lg bg-zurit-purple px-6 py-3 font-body text-sm font-medium text-white transition-colors hover:bg-zurit-purple/90 focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2">
-                        <span>Actions</span>
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <!-- Dropdown Menu -->
-                    <div v-if="showActionsMenu"
-                        class="absolute right-0 mt-2 w-48 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                        <div class="py-1">
-                            <button @click="handleEdit"
-                                class="w-full flex items-center px-4 py-2 text-sm text-light-black hover:bg-gray-100">
-                                <svg class="mr-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                                Edit profile
-                            </button>
-                            <button @click="handleReassign"
-                                class="w-full flex items-center px-4 py-2 text-sm text-light-black hover:bg-gray-100">
-                                <svg class="mr-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                </svg>
-                                Reassign lead
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Click outside to close -->
-                    <div v-if="showActionsMenu" class="fixed inset-0 z-40" @click="showActionsMenu = false"></div>
-                </div>
-
-                <!-- Simple Edit Button (for team members without reassign) -->
-                <button v-else @click="handleEdit"
-                    class="inline-flex items-center space-x-2 rounded-lg bg-zurit-purple px-6 py-3 font-body text-sm font-medium text-white transition-colors hover:bg-zurit-purple/90 focus:outline-none focus:ring-2 focus:ring-zurit-purple focus:ring-offset-2">
-                    <span>Edit profile</span>
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-            </div>
         </div>
     </Modal>
 
-    <!-- Reassign Lead Modal -->
-    <ReassignLeadModal
-        :show="showReassignModal"
+    <!-- Add Activity Modal -->
+    <AddActivityModal
+        :show="showActivityModal"
         :lead="client"
-        @close="showReassignModal = false"
-        @reassigned="handleReassigned"
+        @close="showActivityModal = false"
+        @activity-added="handleActivityAdded"
     />
 </template>
