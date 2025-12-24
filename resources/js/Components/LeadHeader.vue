@@ -4,6 +4,14 @@ import axios from 'axios';
 import AddLeadModal from './AddLeadModal.vue';
 import AddPersonalLeadModal from './AddPersonalLeadModal.vue';
 import LeadTypeSelector from './LeadTypeSelector.vue';
+import AddTaskModal from '@/Components/AddTaskModal.vue';
+
+
+const handleTaskAdded = (task) => {
+    showAddTaskModal.value = false;
+};
+
+const showAddTaskModal = ref(false);
 
 const props = defineProps({
     title: {
@@ -154,8 +162,19 @@ const handleFilter = (filterType) => {
                     </svg>
                     <span>Add Lead</span>
                 </button>
+
+                <button @click="showAddTaskModal = true"
+                    class="inline-flex items-center gap-2 rounded-lg bg-zurit-purple px-4 py-2 font-body text-sm font-medium text-white hover:bg-zurit-purple/90 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Task
+                </button>
             </div>
         </div>
+
+        <!-- Add Task Modal -->
+        <AddTaskModal :show="showAddTaskModal" @close="showAddTaskModal = false" @task-added="handleTaskAdded" />
 
         <!-- KPI Cards -->
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
