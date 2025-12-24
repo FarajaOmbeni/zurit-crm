@@ -11,7 +11,6 @@ const searchTerm = ref('');
 const sortBy = ref('due_date');
 const sortOrder = ref('asc');
 const activeTab = ref('all');
-const showAddModal = ref(false);
 const showDeleteModal = ref(false);
 const taskToDelete = ref(null);
 const deleting = ref(false);
@@ -175,7 +174,7 @@ const addTask = async () => {
         delete taskData.client_name;
         
         await axios.post('/api/tasks', taskData);
-        showAddModal.value = false;
+        activeTab.value = 'all';
         resetForm();
         fetchTasks();
         fetchStats();
@@ -217,6 +216,17 @@ const getStatusIcon = (task) => {
         return { type: 'overdue', bg: 'bg-red-50', iconBg: 'bg-red-500', border: 'border-red-500' };
     }
     return { type: 'pending', bg: 'bg-yellow-50', iconBg: 'bg-yellow-500', border: 'border-yellow-500' };
+};
+
+const getTaskBorderColor = (task) => {
+    if (task.status === 'completed') {
+        return 'border-l-4 border-green-500';
+    }
+    if (isOverdue(task)) {
+        return 'border-l-4 border-red-500';
+    }
+    // Pending tasks - use yellow/orange border
+    return 'border-l-4 border-yellow-500';
 };
 
 const getPriorityBadge = (task) => {
@@ -314,16 +324,16 @@ const getPageNumbers = () => {
     return pages;
 };
 
-// Open add modal
-const openAddModal = () => {
+// Open add form
+const openAddForm = () => {
     resetForm();
     fetchLeads();
-    showAddModal.value = true;
+    activeTab.value = 'add';
 };
 
-// Lock body scroll when modal is open
-watch([showAddModal, showDeleteModal], ([addOpen, deleteOpen]) => {
-    if (addOpen || deleteOpen) {
+// Lock body scroll when delete modal is open
+watch(showDeleteModal, (isOpen) => {
+    if (isOpen) {
         document.body.style.overflow = 'hidden';
     } else {
         document.body.style.overflow = '';
@@ -420,16 +430,21 @@ onMounted(() => {
                                 All Activities ({{ stats.total }})
                             </button>
                             <button
-                                @click="openAddModal"
-                                class="pb-4 font-body text-sm font-medium text-zurit-gray hover:text-light-black transition-colors border-b-2 border-transparent"
+                                @click="openAddForm"
+                                :class="[
+                                    'pb-4 font-body text-sm font-medium transition-colors border-b-2',
+                                    activeTab === 'add'
+                                        ? 'text-prosper border-prosper'
+                                        : 'text-zurit-gray border-transparent hover:text-light-black'
+                                ]"
                             >
                                 +Add Activity
                             </button>
                         </div>
                     </div>
 
-                    <!-- Search and Filter Section -->
-                    <div class="p-6 border-b border-gray-100">
+                    <!-- Search and Filter Section (only show when viewing tasks) -->
+                    <div v-if="activeTab === 'all'" class="p-6 border-b border-gray-100">
                         <div class="flex items-center gap-4">
                             <!-- Search Bar -->
                             <div class="flex-1">
@@ -473,8 +488,90 @@ onMounted(() => {
                         </div>
                     </div>
 
+                    <!-- Add Task Form (shown when add tab is active) -->
+                    <div v-if="activeTab === 'add'" class="p-6">
+                        <h3 class="font-heading text-2xl font-semibold text-light-black mb-6">Create New Task</h3>
+                        <form @submit.prevent="addTask" class="space-y-5">
+                            <!-- Task Title -->
+                            <div>
+                                <label class="block font-body text-sm font-medium text-light-black mb-2">Task Title *</label>
+                                <input
+                                    v-model="newTask.title"
+                                    type="text"
+                                    placeholder="What needs to be done?"
+                                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                                />
+                                <p v-if="formErrors.title" class="mt-1 text-sm text-red-500">{{ formErrors.title[0] }}</p>
+                            </div>
+
+                            <!-- Description -->
+                            <div>
+                                <label class="block font-body text-sm font-medium text-light-black mb-2">Description</label>
+                                <textarea
+                                    v-model="newTask.description"
+                                    rows="4"
+                                    placeholder="Provide more details about this task..."
+                                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple resize-none"
+                                ></textarea>
+                            </div>
+
+                            <!-- Client -->
+                            <div>
+                                <label class="block font-body text-sm font-medium text-light-black mb-2">Client *</label>
+                                <input
+                                    v-model="newTask.client_name"
+                                    type="text"
+                                    placeholder="Client name or company"
+                                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                                />
+                                <p v-if="formErrors.client_name" class="mt-1 text-sm text-red-500">{{ formErrors.client_name[0] }}</p>
+                            </div>
+
+                            <!-- Due Date -->
+                            <div>
+                                <label class="block font-body text-sm font-medium text-light-black mb-2">Due Date *</label>
+                                <div class="relative">
+                                    <input
+                                        v-model="newTask.due_date"
+                                        type="date"
+                                        placeholder="dd/mm/yyyy"
+                                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
+                                    />
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p v-if="formErrors.due_date" class="mt-1 text-sm text-red-500">{{ formErrors.due_date[0] }}</p>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex items-center gap-3 pt-4">
+                                <button
+                                    type="submit"
+                                    :disabled="submitting"
+                                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-zurit-purple px-4 py-3 font-body text-sm font-medium text-white hover:bg-zurit-purple/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <span v-if="submitting">Creating...</span>
+                                    <span v-else>Create Task</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="resetForm"
+                                    class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 font-body text-sm font-medium text-light-black hover:bg-gray-50 transition-colors"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
                     <!-- Loading State -->
-                    <div v-if="loading" class="p-12 text-center">
+                    <div v-else-if="activeTab === 'all' && loading" class="p-12 text-center">
                         <div class="flex flex-col items-center justify-center space-y-4">
                             <svg class="animate-spin h-8 w-8 text-zurit-purple" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -485,14 +582,14 @@ onMounted(() => {
                     </div>
 
                     <!-- Empty State -->
-                    <div v-else-if="tasks.length === 0" class="p-12 text-center">
+                    <div v-else-if="activeTab === 'all' && tasks.length === 0" class="p-12 text-center">
                         <svg class="mx-auto h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                         <p class="mt-4 font-body text-lg font-medium text-zurit-gray">No tasks found</p>
                         <p class="mt-2 font-body text-sm text-zurit-gray">Get started by adding a new task</p>
                         <button
-                            @click="openAddModal"
+                            @click="openAddForm"
                             class="mt-6 inline-flex items-center gap-2 rounded-lg bg-zurit-purple px-4 py-2 font-body text-sm font-medium text-white hover:bg-zurit-purple/90 transition-colors"
                         >
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -503,12 +600,13 @@ onMounted(() => {
                     </div>
 
                     <!-- Tasks List -->
-                    <div v-else class="divide-y divide-gray-100">
+                    <div v-else-if="activeTab === 'all'" class="p-6 space-y-4">
                         <div
                             v-for="task in tasks"
                             :key="task.id"
                             :class="[
-                                'p-6 transition-colors hover:bg-gray-50',
+                                'p-6 rounded-lg border transition-colors hover:bg-gray-50',
+                                getTaskBorderColor(task),
                                 getStatusIcon(task).bg
                             ]"
                         >
@@ -597,7 +695,7 @@ onMounted(() => {
                     </div>
 
                     <!-- Pagination -->
-                    <div v-if="tasks.length > 0 && lastPage > 1" class="px-6 py-4 border-t border-gray-200 bg-white">
+                    <div v-if="activeTab === 'all' && tasks.length > 0 && lastPage > 1" class="px-6 py-4 border-t border-gray-200 bg-white">
                         <div class="flex items-center justify-between">
                             <!-- Previous Button -->
                             <button
@@ -670,102 +768,6 @@ onMounted(() => {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Add Task Modal -->
-        <div
-            v-if="showAddModal"
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
-            @click="showAddModal = false"
-        >
-            <div
-                class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden"
-                @click.stop
-            >
-                <!-- Modal Header -->
-                <div class="p-6 border-b border-gray-200">
-                    <h3 class="font-heading text-2xl font-semibold text-light-black">Create New Task</h3>
-                </div>
-
-                <!-- Modal Body -->
-                <form @submit.prevent="addTask" class="p-6 space-y-5">
-                    <!-- Task Title -->
-                    <div>
-                        <label class="block font-body text-sm font-medium text-light-black mb-2">Task Title *</label>
-                        <input
-                            v-model="newTask.title"
-                            type="text"
-                            placeholder="What needs to be done?"
-                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                        />
-                        <p v-if="formErrors.title" class="mt-1 text-sm text-red-500">{{ formErrors.title[0] }}</p>
-                    </div>
-
-                    <!-- Description -->
-                    <div>
-                        <label class="block font-body text-sm font-medium text-light-black mb-2">Description</label>
-                        <textarea
-                            v-model="newTask.description"
-                            rows="4"
-                            placeholder="Provide more details about this task..."
-                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple resize-none"
-                        ></textarea>
-                    </div>
-
-                    <!-- Client -->
-                    <div>
-                        <label class="block font-body text-sm font-medium text-light-black mb-2">Client *</label>
-                        <input
-                            v-model="newTask.client_name"
-                            type="text"
-                            placeholder="Client name or company"
-                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                        />
-                        <p v-if="formErrors.client_name" class="mt-1 text-sm text-red-500">{{ formErrors.client_name[0] }}</p>
-                    </div>
-
-                    <!-- Due Date -->
-                    <div>
-                        <label class="block font-body text-sm font-medium text-light-black mb-2">Due Date *</label>
-                        <div class="relative">
-                            <input
-                                v-model="newTask.due_date"
-                                type="date"
-                                placeholder="dd/mm/yyyy"
-                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 font-body text-sm text-light-black placeholder-gray-400 focus:border-zurit-purple focus:outline-none focus:ring-1 focus:ring-zurit-purple"
-                            />
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <p v-if="formErrors.due_date" class="mt-1 text-sm text-red-500">{{ formErrors.due_date[0] }}</p>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex items-center gap-3 pt-4">
-                        <button
-                            type="submit"
-                            :disabled="submitting"
-                            class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-zurit-purple px-4 py-3 font-body text-sm font-medium text-white hover:bg-zurit-purple/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span v-if="submitting">Creating...</span>
-                            <span v-else>Create Task</span>
-                        </button>
-                        <button
-                            type="button"
-                            @click="resetForm"
-                            class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 font-body text-sm font-medium text-light-black hover:bg-gray-50 transition-colors"
-                        >
-                            Clear
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
 
