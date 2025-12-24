@@ -1,6 +1,6 @@
 <script setup>
 import { Link, usePage, router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import axios from 'axios';
@@ -42,6 +42,11 @@ const fetchProducts = async () => {
         loadingProducts.value = false;
     }
 };
+
+// Prefetch products on component mount for instant display on hover
+onMounted(() => {
+    fetchProducts();
+});
 
 const handlePipelineClick = () => {
     // Navigate to product selection page
