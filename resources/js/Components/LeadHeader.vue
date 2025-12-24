@@ -164,7 +164,7 @@ const handleFilter = (filterType) => {
                 </button>
 
                 <button @click="showAddTaskModal = true"
-                    class="inline-flex items-center gap-2 rounded-lg bg-zurit-purple px-4 py-2 font-body text-sm font-medium text-white hover:bg-zurit-purple/90 transition-colors">
+                    class="inline-flex items-center gap-2 rounded-lg bg-zurit-gray px-4 py-2 font-body text-sm font-medium text-white hover:bg-zurit-purple/90 transition-colors">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
